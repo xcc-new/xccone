@@ -719,7 +719,7 @@
         document.querySelector('.id-check').onclick=()=>{
             let id=document.querySelector('.id-result').value;
             if(id.length!==18)return document.querySelector('.id-info').value='格式错误';
-            let ok=getIDCode(id.slice(0,17))===id[17].toUpperCase();
+            let ok=getIDCode(id.slice(0,17))===id[16].toUpperCase();
             let bir=`${id.slice(6,10)}-${id.slice(10,12)}-${id.slice(12,14)}`;
             let sx=parseInt(id[16])%2===1?'男':'女';
             let age=new Date().getFullYear()-parseInt(id.slice(6,10));
@@ -814,8 +814,8 @@
                 c=GG(c,d,a,b,x[k+15],14,0xD8A1E681);
                 b=GG(b,c,d,a,x[k+4],20,0xE7D3FBC8);
                 a=GG(a,b,c,d,x[k+9],5,0x21E1CDE6);
-                d=GG(d,a,b,c,x[k+14],9,0xC33707D6);
-                c=GG(c,d,a,b,x[k+3],14,0xF4D50D87);
+                d=GG(d,a,b,c,x[k+14],9,0xF4D50D87);
+                c=GG(c,d,a,b,x[k+3],14,0xFCEFA3F8);
                 b=GG(b,c,d,a,x[k+8],20,0x455A14ED);
                 a=GG(a,b,c,d,x[k+13],5,0xA9E3E905);
                 d=GG(d,a,b,c,x[k+2],9,0xFCEFA3F8);
@@ -873,5 +873,16 @@
         document.querySelector('.md5-clear').onclick=()=>md5In.value='',md5Up.value='',md5Low.value='';
         document.querySelector('.md5-copy').onclick=()=>copyText(md5Low.value);
     </script>
+
+<!-- 百度统计代码 已集成 -->
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?e8b551d034ac6840afcfaf0f2f02e5b3";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
 </body>
 </html>
