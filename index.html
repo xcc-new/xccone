@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="keywords" content="开发者工具箱,JSON格式化,时间戳转换,Base64加密,前端工具,在线开发工具">
     <meta name="description" content="免费纯前端开发者工具箱，集成JSON格式化、时间戳转换、编码加密、前端样式、模拟测试等开发工具，无广告免登录本地运算">
-    <meta name="baidu-site-verification" content="codeva-vocYRsyaOJ" />
     <title>DevBox - 专业开发者全能工具箱</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -34,135 +33,34 @@
             }
         }
     </script>
-    <style>
-        .scrollbar-hide {
-            -ms-overflow-style: none;
-            scrollbar-width: none;
-        }
-        .scrollbar-hide::-webkit-scrollbar {
-            display: none;
-        }
-        .sidebar-active {
-            background-color: rgba(22, 93, 255, 0.1);
-            color: #165DFF;
-            border-left: 4px solid #165DFF;
-        }
-        .btn-base {
-            padding: 0.375rem 0.75rem;
-            border-radius: 0.375rem;
-            font-size: 0.875rem;
-            font-weight: 500;
-            transition: all 0.2s ease;
-        }
-        .btn-base:active {
-            transform: scale(0.95);
-        }
-        .btn-primary {
-            background-color: #165DFF;
-            color: #fff;
-        }
-        .btn-primary:hover {
-            background-color: #144fc9;
-        }
-        .btn-outline {
-            border: 1px solid #165DFF;
-            color: #165DFF;
-            background: transparent;
-        }
-        .btn-outline:hover {
-            background-color: rgba(22, 93, 255, 0.05);
-        }
-        .dark .btn-outline:hover {
-            background-color: rgba(22, 93, 255, 0.12);
-        }
-        .input-style {
-            width: 100%;
-            padding: 0.625rem;
-            border-radius: 0.5rem;
-            border: 1px solid #e5e7eb;
-            background: #fff;
-            color: #1f2937;
-            outline: none;
-            transition: all 0.2s ease;
-        }
-        .dark .input-style {
-            border-color: #374151;
-            background: #111827;
-            color: #f8fafc;
-        }
-        .input-style:focus {
-            border-color: #165DFF;
-        }
-        .sidebar-search {
-            width: 100%;
-            background: #f8fafc;
-            border-color: #d1d5db;
-            box-shadow: inset 0 1px 2px rgba(15,23,42,0.06);
-        }
-        .dark .sidebar-search {
-            background: #111827;
-            border-color: #374151;
-        }
-        .tool-item {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            padding: 0.75rem 0.9rem;
-            border-radius: 0.75rem;
-            transition: all 0.2s ease;
-            color: #475569;
-        }
-        .tool-item i {
-            width: 1.2rem;
-            text-align: center;
-            color: #94a3b8;
-        }
-        .tool-item:hover {
-            background: #f8fafc;
-            color: #1d4ed8;
-        }
-        .dark .tool-item:hover {
-            background: #1f2937;
-        }
-        .sidebar-active {
-            background: rgba(22, 93, 255, 0.12);
-            color: #1d4ed8;
-            border-left-color: #165DFF;
-            box-shadow: inset 4px 0 0 #165DFF;
-        }
-        .sidebar-active i {
-            color: #165DFF;
-        }
-        .tool-panel .panel-description {
-            color: #6b7280;
-            margin-top: 0.35rem;
-            font-size: 0.95rem;
-        }
-        .dark .tool-panel .panel-description {
-            color: #9ca3af;
-        }
-        .result-card {
-            background: rgba(248, 250, 252, 0.9);
-            border: 1px solid #e2e8f0;
-            border-radius: 1rem;
-            padding: 1rem;
-        }
-        .dark .result-card {
-            background: #111827;
-            border-color: #374151;
-        }
-        .result-title {
-            font-weight: 600;
-            color: #0f172a;
-            margin-bottom: 0.5rem;
-        }
-        .dark .result-title {
-            color: #f8fafc;
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .scrollbar-hide {
+                -ms-overflow-style: none;
+                scrollbar-width: none;
+            }
+            .scrollbar-hide::-webkit-scrollbar {
+                display: none;
+            }
+            .sidebar-active {
+                @apply bg-primary/10 text-primary border-l-4 border-primary;
+            }
+            .btn-base {
+                @apply px-3 py-1.5 rounded-md text-sm font-medium transition-all duration-200 active:scale-95;
+            }
+            .btn-primary {
+                @apply btn-base bg-primary text-white hover:bg-primary/90;
+            }
+            .btn-outline {
+                @apply btn-base border border-primary text-primary hover:bg-primary/5 dark:hover:bg-primary/20;
+            }
+            .input-style {
+                @apply w-full p-2.5 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-darkCard text-gray-800 dark:text-gray-100 outline-none focus:border-primary transition-all;
+            }
         }
     </style>
 </head>
 <body class="bg-gray-50 dark:bg-darkBg text-gray-700 dark:text-gray-300 min-h-screen flex flex-col overflow-hidden">
-    <div id="toast"></div>
     <header class="h-16 bg-white dark:bg-darkCard shadow-sm flex items-center justify-between px-4 md:px-6 z-50 shrink-0">
         <div class="flex items-center gap-3">
             <button id="foldSidebar" class="md:hidden text-xl">
@@ -170,14 +68,16 @@
             </button>
             <div class="flex items-center gap-2">
                 <i class="fa-solid fa-code text-primary text-xl"></i>
-                <div>
-                    <h1 class="text-lg font-bold text-gray-900 dark:text-white">DevBox 开发工具箱</h1>
-                    <p class="text-sm text-gray-500 dark:text-gray-400">一站式前端工具，快速转换、校验与调试</p>
-                </div>
+                <h1 class="text-lg font-bold text-gray-900 dark:text-white">DevBox 开发工具箱</h1>
             </div>
         </div>
-        <!-- 仅修改了这部分，删除了两个无用按钮，保留主题切换功能和日间/夜间图标 -->
         <div class="flex items-center gap-3">
+            <button id="openHistory" class="btn-outline hidden md:flex items-center gap-1">
+                <i class="fa-solid fa-clock-rotate-left"></i> 浏览历史
+            </button>
+            <button id="openCollect" class="btn-outline hidden md:flex items-center gap-1">
+                <i class="fa-solid fa-star"></i> 我的收藏
+            </button>
             <button id="themeSwitch" class="w-9 h-9 rounded-full flex items-center justify-center bg-gray-100 dark:bg-gray-700 hover:scale-105 transition-all">
                 <i class="fa-solid fa-sun dark:hidden"></i>
                 <i class="fa-solid fa-moon hidden dark:block text-yellow-300"></i>
@@ -188,9 +88,6 @@
     <main class="flex flex-1 overflow-hidden">
         <aside id="sidebar" class="w-64 bg-white dark:bg-darkCard border-r border-gray-200 dark:border-gray-700 overflow-y-auto scrollbar-hide transition-all duration-300 shrink-0">
             <div class="py-4 px-3">
-                <div class="mb-4">
-                    <input type="text" id="sidebarSearch" class="input-style sidebar-search" placeholder="搜索工具名称">
-                </div>
                 <div class="mb-5">
                     <h3 class="text-xs text-gray-400 uppercase tracking-wider mb-2 pl-2">🔥 热门常用</h3>
                     <ul class="space-y-1">
@@ -279,17 +176,13 @@
                 </div>
             </div>
         </aside>
-        <div id="sidebarMask" class="hidden fixed inset-0 bg-black/40 z-30 md:hidden"></div>
 
         <section class="flex-1 p-4 md:p-6 overflow-y-auto scrollbar-hide bg-gray-50 dark:bg-darkBg">
             <div class="tool-panel" id="panel-jsonFormat">
                 <div class="bg-white dark:bg-darkCard rounded-xl shadow-tool dark:shadow-toolDark p-5">
-                    <div class="flex justify-between items-start mb-4">
-                        <div>
-                            <h2 class="text-lg font-bold text-gray-900 dark:text-white">JSON 在线格式化/压缩/校验</h2>
-                            <p class="panel-description">输入 JSON 后可快速格式化、压缩，并进行语法校验。</p>
-                        </div>
-                        <div class="flex flex-wrap gap-2">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-lg font-bold text-gray-900 dark:text-white">JSON 在线格式化/压缩/校验</h2>
+                        <div class="flex gap-2">
                             <button class="btn-primary json-format">格式化</button>
                             <button class="btn-outline json-compress">压缩一行</button>
                             <button class="btn-outline json-clear">清空</button>
@@ -301,9 +194,9 @@
                             <label class="text-sm mb-1 block">输入JSON文本</label>
                             <textarea class="input-style h-80 json-input resize-none" placeholder="请粘贴JSON字符串..."></textarea>
                         </div>
-                        <div class="result-card">
-                            <div class="result-title">输出结果</div>
-                            <pre class="input-style h-80 json-output resize-none bg-gray-50 dark:bg-gray-800 overflow-auto"></pre>
+                        <div>
+                            <label class="text-sm mb-1 block">输出结果</label>
+                            <textarea class="input-style h-80 json-output resize-none bg-gray-50 dark:bg-gray-800" readonly></textarea>
                         </div>
                     </div>
                     <p class="mt-3 text-sm text-gray-500 json-tips"></p>
@@ -312,8 +205,7 @@
 
             <div class="tool-panel hidden" id="panel-timestamp">
                 <div class="bg-white dark:bg-darkCard rounded-xl shadow-tool dark:shadow-toolDark p-5">
-                    <h2 class="text-lg font-bold text-gray-900 dark:text-white mb-2">时间戳 & 北京时间 互转</h2>
-                    <p class="panel-description">输入时间戳或标准日期，可在两种格式间快速切换。</p>
+                    <h2 class="text-lg font-bold text-gray-900 dark:text-white mb-4">时间戳 & 北京时间 互转</h2>
                     <div class="grid md:grid-cols-2 gap-6">
                         <div>
                             <label class="text-sm block mb-2">10/13位时间戳</label>
@@ -324,7 +216,6 @@
                             <input type="text" class="input-style ts-date" placeholder="输入日期自动转换">
                         </div>
                     </div>
-                    <p class="mt-2 text-sm text-gray-500 ts-tips"></p>
                     <div class="flex gap-3 mt-4">
                         <button class="btn-primary ts-now">获取当前时间戳</button>
                         <button class="btn-outline ts-copy">复制结果</button>
@@ -350,9 +241,8 @@
                 <div class="bg-white dark:bg-darkCard rounded-xl shadow-tool dark:shadow-toolDark p-5">
                     <h2 class="text-lg font-bold text-gray-900 dark:text-white mb-4">URL 网址编解码</h2>
                     <textarea class="input-style h-40 url-input mb-3" placeholder="输入链接进行编码/解码"></textarea>
-                    <div class="flex flex-wrap gap-3 mb-3">
+                    <div class="flex gap-3 mb-3">
                         <button class="btn-primary url-encode">URL编码</button>
-                        <button class="btn-primary url-encode-uri">URI编码</button>
                         <button class="btn-outline url-decode">URL解码</button>
                         <button class="btn-outline url-clear">清空</button>
                         <button class="btn-outline url-copy">复制</button>
@@ -474,7 +364,6 @@
                     <h2 class="text-lg font-bold text-gray-900 dark:text-white mb-4">RGB / HEX / HSL 颜色互转</h2>
                     <div class="flex gap-3 items-center">
                         <input type="color" class="w-12 h-10 color-pick">
-                        <div class="w-12 h-10 rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 color-preview"></div>
                         <input class="input-style flex-1 color-hex" placeholder="输入#ffffff格式色值">
                         <button class="btn-primary color-convert">一键转换</button>
                     </div>
@@ -511,9 +400,8 @@
                 <div class="bg-white dark:bg-darkCard rounded-xl shadow-tool dark:shadow-toolDark p-5">
                     <div class="flex justify-between items-center mb-3">
                         <h2 class="text-lg font-bold text-gray-900 dark:text-white">身份证模拟生成 & 解析校验</h2>
-                        <span class="text-xs text-danger font-bold">⚠️ 仅开发测试使用，禁止违法使用</span>
                     </div>
-                    <div class="grid md:grid-cols-3 gap-3 mb-4">
+                    <div class="grid md:grid-cols-4 gap-3 mb-4">
                         <select class="input-style id-province">
                             <option value="110000">北京市</option>
                             <option value="310000">上海市</option>
@@ -527,14 +415,23 @@
                             <option value="female">女性</option>
                         </select>
                         <input type="date" class="input-style id-birth" value="1995-06-01">
+                        <select class="input-style id-count">
+                            <option value="1">生成 1 个</option>
+                            <option value="5">生成 5 个</option>
+                            <option value="10" selected>生成 10 个</option>
+                            <option value="100">生成 100 个</option>
+                        </select>
                     </div>
                     <div class="flex gap-3 mb-4">
                         <button class="btn-primary id-create">一键生成身份证</button>
                         <button class="btn-outline id-copy">复制号码</button>
                         <button class="btn-outline id-check">校验解析</button>
                     </div>
-                    <input class="input-style id-result mb-3" readonly placeholder="生成结果">
-                    <textarea class="input-style h-24 id-info bg-gray-50 dark:bg-gray-800" readonly placeholder="解析信息展示"></textarea>
+                    <div class="id-result-grid grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2 mb-3 max-h-[22rem] p-3 rounded-xl bg-gray-50 dark:bg-gray-800 overflow-y-auto overflow-x-hidden text-xs">
+                        <div class="col-span-full text-gray-400 dark:text-gray-400">生成结果将显示在此处</div>
+                    </div>
+                    <textarea class="input-style h-40 id-info bg-gray-50 dark:bg-gray-800" readonly placeholder="解析信息展示"></textarea>
+                    <p class="mt-4 text-sm text-danger font-bold"><strong>⚠️ 本站提供的身份证号码由系统随机组合而成， 并非现实生活中真实的身份证号码， 可用于网站开发测试时期的初级身份证号码验证，男女满18岁成年人身份证游戏防沉迷注册等 软件程序测试。 请勿用于任何其他用途。若因使用这些身份证号码而产生任何问题和纠纷，本网站不承担任何直接或间接的责任！</strong></p>
                 </div>
             </div>
 
@@ -544,14 +441,20 @@
                         <h2 class="text-lg font-bold text-gray-900 dark:text-white">手机号随机生成</h2>
                         <span class="text-xs text-danger font-bold">⚠️ 仅开发测试使用，禁止违法使用</span>
                     </div>
-                    <div class="grid md:grid-cols-3 gap-3 mb-4">
+                    <div class="grid md:grid-cols-4 gap-3 mb-4">
                         <select class="input-style phone-operator">
                             <option value="all">所有运营商</option>
                             <option value="mobile">中国移动</option>
                             <option value="unicom">中国联通</option>
                             <option value="telecom">中国电信</option>
                         </select>
-                        <input type="number" class="input-style phone-count" min="1" max="100" value="10" placeholder="生成数量">
+                        <div class="col-span-2"></div>
+                        <select class="input-style phone-count">
+                            <option value="1">生成 1 个</option>
+                            <option value="5">生成 5 个</option>
+                            <option value="10" selected>生成 10 个</option>
+                            <option value="100">生成 100 个</option>
+                        </select>
                     </div>
                     <div class="flex gap-3 mb-4">
                         <button class="btn-primary phone-generate">一键生成</button>
@@ -583,69 +486,7 @@
 
     <style>
         .tool-item {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            padding: 0.5rem 0.75rem;
-            border-radius: 0.375rem;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            font-size: 0.875rem;
-        }
-        .tool-item:hover { background-color: #f3f4f6; }
-        .dark .tool-item:hover { background-color: #1f2937; }
-        .json-output {
-            white-space: pre-wrap;
-            word-break: break-word;
-            min-height: 100%;
-            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-            padding: 1rem;
-            border: 1px solid #d1d5db;
-            border-radius: 0.75rem;
-            line-height: 1.6;
-            background-color: #f8fafc;
-        }
-        .dark .json-output {
-            border-color: #374151;
-            background-color: #111827;
-        }
-        .json-key { color: #d946ef; }
-        .json-string { color: #16a34a; }
-        .json-number { color: #2563eb; }
-        .json-boolean { color: #f97316; }
-        .json-null { color: #6b7280; }
-        .json-punct { color: #9ca3af; }
-        .color-preview {
-            min-width: 3rem;
-            min-height: 2.5rem;
-            border: 1px solid #d1d5db;
-            border-radius: 0.5rem;
-        }
-        #sidebarMask {
-            display: none;
-        }
-        #sidebarMask.show {
-            display: block;
-        }
-        #toast {
-            position: fixed;
-            right: 1rem;
-            bottom: 1rem;
-            z-index: 50;
-            min-width: 220px;
-            max-width: 320px;
-            padding: 0.9rem 1rem;
-            border-radius: 0.85rem;
-            background: rgba(15, 23, 42, 0.95);
-            color: #fff;
-            box-shadow: 0 12px 34px rgba(15, 23, 42, 0.4);
-            opacity: 0;
-            transform: translateY(12px);
-            transition: opacity 220ms ease, transform 220ms ease;
-        }
-        #toast.show {
-            opacity: 1;
-            transform: translateY(0);
+            @apply flex items-center gap-2 px-3 py-2 rounded-md cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 transition-all text-sm;
         }
         @media (max-width: 768px) {
             #sidebar {
@@ -673,47 +514,21 @@
         });
 
         // 侧边栏切换
-        const sidebar = document.getElementById('sidebar');
-        const sidebarMask = document.getElementById('sidebarMask');
         const toolItems = document.querySelectorAll('.tool-item');
         const toolPanels = document.querySelectorAll('.tool-panel');
-
-        function activateTool(toolName){
-            toolItems.forEach(i => i.classList.toggle('sidebar-active', i.dataset.tool === toolName));
-            toolPanels.forEach(panel => panel.classList.toggle('hidden', panel.id !== `panel-${toolName}`));
-            if(window.innerWidth < 768){
-                sidebar.classList.remove('show');
-                sidebarMask.classList.remove('show');
-            }
-        }
-
-        function loadHistory(){
-            let history = JSON.parse(localStorage.getItem('devbox_history') || '[]');
-            if(history.length) activateTool(history[0]);
-        }
-
-        const sidebarSearch = document.getElementById('sidebarSearch');
         toolItems.forEach(item => {
             item.addEventListener('click', () => {
+                toolItems.forEach(i => i.classList.remove('sidebar-active'));
+                item.classList.add('sidebar-active');
                 const toolName = item.dataset.tool;
-                activateTool(toolName);
+                toolPanels.forEach(panel => panel.classList.add('hidden'));
+                document.getElementById(`panel-${toolName}`).classList.remove('hidden');
+                if(window.innerWidth < 768) document.getElementById('sidebar').classList.remove('show');
                 saveHistory(toolName);
             })
         });
-        sidebarSearch?.addEventListener('input', event => {
-            const filter = event.target.value.toLowerCase();
-            toolItems.forEach(item => {
-                const text = item.textContent.trim().toLowerCase();
-                item.style.display = text.includes(filter) ? 'flex' : 'none';
-            });
-        });
         document.getElementById('foldSidebar').addEventListener('click',()=>{
-            sidebar.classList.toggle('show');
-            sidebarMask.classList.toggle('show');
-        });
-        sidebarMask.addEventListener('click',()=>{
-            sidebar.classList.remove('show');
-            sidebarMask.classList.remove('show');
+            document.getElementById('sidebar').classList.toggle('show');
         });
 
         // 本地历史
@@ -723,70 +538,19 @@
             history.unshift(toolName);
             localStorage.setItem('devbox_history',JSON.stringify(history.slice(0,10)));
         }
-        loadHistory();
 
         // 复制通用方法
-        const toastDom = document.getElementById('toast');
-        let toastTimer;
-        function showToast(message, type = 'info', duration = 2000) {
-            clearTimeout(toastTimer);
-            toastDom.textContent = message;
-            toastDom.style.background = type === 'error' ? 'rgba(220, 38, 38, 0.95)' : 'rgba(15, 23, 42, 0.95)';
-            toastDom.classList.add('show');
-            toastTimer = setTimeout(() => toastDom.classList.remove('show'), duration);
-        }
         function copyText(text){
-            navigator.clipboard.writeText(text).then(()=>showToast('复制成功')).catch(()=>showToast('复制失败','error'));
+            navigator.clipboard.writeText(text).then(()=>alert('复制成功'));
         }
 
         // ========== JSON格式化 ==========
         const jsonInput = document.querySelector('.json-input');
         const jsonOutput = document.querySelector('.json-output');
         const jsonTips = document.querySelector('.json-tips');
-
-        function validateJsonInput(){
-            const value = jsonInput.value.trim();
-            if(!value){
-                jsonTips.innerText='';
-                return;
-            }
-            try{
-                JSON.parse(value);
-                jsonTips.innerText='✅ JSON 语法正常';
-                jsonTips.className='mt-3 text-sm text-success';
-            }catch(e){
-                jsonTips.innerText=`❌ JSON 语法错误：${e.message}`;
-                jsonTips.className='mt-3 text-sm text-danger';
-            }
-        }
-        jsonInput.addEventListener('input', validateJsonInput);
-
-        function jsonSyntaxHighlight(jsonString) {
-            const escaped = jsonString.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-            return escaped.replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"\s*:?)|\b(true|false|null)\b|-?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?|[\{\}\[\],:]/g, match => {
-                let cls = 'json-number';
-                if (/^"/.test(match)) {
-                    cls = /:\s*$/.test(match) ? 'json-key' : 'json-string';
-                } else if (/true|false/.test(match)) {
-                    cls = 'json-boolean';
-                } else if (/null/.test(match)) {
-                    cls = 'json-null';
-                } else if (/^[\{\}\[\],:]$/.test(match)) {
-                    cls = 'json-punct';
-                }
-                return `<span class="${cls}">${match}</span>`;
-            });
-        }
-
-        function renderJsonResult(value) {
-            jsonOutput.innerHTML = jsonSyntaxHighlight(value);
-            jsonOutput.scrollTop = 0;
-        }
-
         document.querySelector('.json-format').onclick = ()=>{
             try{
-                const result = JSON.stringify(JSON.parse(jsonInput.value),null,4);
-                renderJsonResult(result);
+                jsonOutput.value = JSON.stringify(JSON.parse(jsonInput.value),null,4);
                 jsonTips.innerText = '✅ JSON格式正确';
                 jsonTips.className = 'mt-3 text-sm text-success';
             }catch(e){
@@ -796,8 +560,7 @@
         };
         document.querySelector('.json-compress').onclick = ()=>{
             try{
-                const result = JSON.stringify(JSON.parse(jsonInput.value));
-                renderJsonResult(result);
+                jsonOutput.value = JSON.stringify(JSON.parse(jsonInput.value));
                 jsonTips.innerText = '✅ 压缩完成';
                 jsonTips.className = 'mt-3 text-sm text-success';
             }catch(e){
@@ -805,114 +568,46 @@
                 jsonTips.className = 'mt-3 text-sm text-danger';
             }
         };
-        document.querySelector('.json-clear').onclick = ()=>{jsonInput.value='';jsonOutput.innerHTML='';jsonTips.innerText='';};
-        document.querySelector('.json-copy').onclick = ()=>copyText(jsonOutput.textContent);
+        document.querySelector('.json-clear').onclick = ()=>{jsonInput.value='';jsonOutput.value='';jsonTips.innerText='';};
+        document.querySelector('.json-copy').onclick = ()=>copyText(jsonOutput.value);
 
         // ========== 时间戳转换 ==========
         const tsInput = document.querySelector('.ts-input');
         const tsDate = document.querySelector('.ts-date');
-        const tsTips = document.querySelector('.ts-tips');
-
-        function parseTimestamp(value){
-            const trimmed = value.trim();
-            if(!trimmed) return '';
-            if(/^\d{10}$/.test(trimmed)) return new Date(parseInt(trimmed,10)*1000);
-            if(/^\d{13}$/.test(trimmed)) return new Date(parseInt(trimmed,10));
-            const parsed = new Date(trimmed);
-            return isNaN(parsed.getTime()) ? null : parsed;
-        }
-
-        function formatTimestamp(value){
-            const date = parseTimestamp(value);
-            if(date === null) return null;
-            return date === '' ? '' : date.toLocaleString('zh-CN',{hour12:false});
-        }
-
         tsInput.addEventListener('input',()=>{
-            const result = formatTimestamp(tsInput.value);
-            if(result === null){
-                tsDate.value='';
-                tsTips.innerText='请输入10/13位时间戳或标准日期格式';
-                tsTips.className='mt-2 text-sm text-danger';
-            } else {
-                tsDate.value = result;
-                tsTips.innerText='';
-            }
+            let t = tsInput.value.trim();
+            if(!t) return tsDate.value='';
+            if(t.length===10) t *= 1000;
+            if(t.length===13) tsDate.value = new Date(+t).toLocaleString('zh-CN',{hour12:false});
         });
         tsDate.addEventListener('input',()=>{
-            const date = parseTimestamp(tsDate.value);
-            if(date){
-                tsInput.value = Math.floor(date.getTime()/1000);
-                tsTips.innerText='';
-            } else {
-                tsTips.innerText='请输入有效日期';
-                tsTips.className='mt-2 text-sm text-danger';
-            }
+            let d = new Date(tsDate.value);
+            if(!isNaN(d.getTime())) tsInput.value = Math.floor(d.getTime()/1000);
         });
         document.querySelector('.ts-now').onclick = ()=>{
             let now = Date.now();
             tsInput.value = Math.floor(now/1000);
             tsDate.value = new Date(now).toLocaleString('zh-CN',{hour12:false});
-            tsTips.innerText='';
         };
         document.querySelector('.ts-copy').onclick = ()=>copyText(tsInput.value);
 
         // ========== Base64加解密 ==========
         const b64In = document.querySelector('.base64-input');
         const b64Out = document.querySelector('.base64-result');
-        function safeBase64Encode(value){
-            return btoa(unescape(encodeURIComponent(value)));
-        }
-        function safeBase64Decode(value){
-            return decodeURIComponent(escape(atob(value.trim())));
-        }
-        document.querySelector('.base64-encode').onclick = ()=>{
-            try{
-                b64Out.value = safeBase64Encode(b64In.value);
-            }catch(e){
-                b64Out.value = '编码失败';
-                showToast('Base64 编码失败','error');
-            }
-        };
+        document.querySelector('.base64-encode').onclick = ()=>b64Out.value = btoa(unescape(encodeURIComponent(b64In.value)));
         document.querySelector('.base64-decode').onclick = ()=>{
-            try{
-                b64Out.value = safeBase64Decode(b64In.value);
-            }catch(e){
-                b64Out.value = '解密失败';
-                showToast('Base64 解码失败','error');
-            }
+            try{b64Out.value = decodeURIComponent(escape(atob(b64In.value)));}
+            catch{e=>b64Out.value='解密失败'}
         };
-        document.querySelector('.base64-clear').onclick = ()=>{b64In.value='';b64Out.value='';};
+        document.querySelector('.base64-clear').onclick = ()=>b64In.value='',b64Out.value='';
         document.querySelector('.base64-copy').onclick = ()=>copyText(b64Out.value);
 
         // ========== URL编解码 ==========
         const urlIn = document.querySelector('.url-input');
         const urlOut = document.querySelector('.url-result');
-        document.querySelector('.url-encode').onclick = ()=>{
-            try{
-                urlOut.value = encodeURIComponent(urlIn.value);
-            }catch(e){
-                urlOut.value = '';
-                showToast('URL 编码失败','error');
-            }
-        };
-        document.querySelector('.url-encode-uri').onclick = ()=>{
-            try{
-                urlOut.value = encodeURI(urlIn.value);
-            }catch(e){
-                urlOut.value = '';
-                showToast('URI 编码失败','error');
-            }
-        };
-        document.querySelector('.url-decode').onclick = ()=>{
-            try{
-                urlOut.value = decodeURIComponent(urlIn.value);
-            }catch(e){
-                urlOut.value = '';
-                showToast('URL 解码失败','error');
-            }
-        };
-        document.querySelector('.url-clear').onclick = ()=>{urlIn.value='';urlOut.value='';};
+        document.querySelector('.url-encode').onclick = ()=>urlOut.value=encodeURIComponent(urlIn.value);
+        document.querySelector('.url-decode').onclick = ()=>urlOut.value=decodeURIComponent(urlIn.value);
+        document.querySelector('.url-clear').onclick = ()=>urlIn.value='',urlOut.value='';
         document.querySelector('.url-copy').onclick = ()=>copyText(urlOut.value);
 
         // ========== Unicode互转 ==========
@@ -983,101 +678,35 @@
 
         // ========== 颜色转换 ==========
         const colPick=document.querySelector('.color-pick'),colHex=document.querySelector('.color-hex'),colRgb=document.querySelector('.color-rgb'),colHsl=document.querySelector('.color-hsl');
-        const colorPreview=document.querySelector('.color-preview');
-
-        function rgbToHex(r,g,b){
-            return '#'+[r,g,b].map(v=>v.toString(16).padStart(2,'0')).join('').toUpperCase();
-        }
-        function rgbToHsl(r,g,b){
-            r/=255;g/=255;b/=255;
-            const max=Math.max(r,g,b),min=Math.min(r,g,b);
-            let h=0,s=0,l=(max+min)/2;
-            if(max!==min){
-                const d=max-min;
-                s=l>0.5?d/(2-max-min):d/(max+min);
-                switch(max){
-                    case r:h=(g-b)/d+(g<b?6:0);break;
-                    case g:h=(b-r)/d+2;break;
-                    case b:h=(r-g)/d+4;break;
-                }
-                h/=6;
-            }
-            return `hsl(${Math.round(h*360)},${Math.round(s*100)}%,${Math.round(l*100)}%)`;
-        }
-        function hslToRgb(h,s,l){
-            h/=360; s/=100; l/=100;
-            function hue2rgb(p,q,t){
-                if(t<0)t+=1;
-                if(t>1)t-=1;
-                if(t<1/6)return p+(q-p)*6*t;
-                if(t<1/2)return q;
-                if(t<2/3)return p+(q-p)*(2/3-t)*6;
-                return p;
-            }
-            let r,g,b;
-            if(s===0){r=g=b=l;} else {
-                const q= l<0.5? l*(1+s) : l+s-l*s;
-                const p= 2*l-q;
-                r=hue2rgb(p,q,h+1/3);
-                g=hue2rgb(p,q,h);
-                b=hue2rgb(p,q,h-1/3);
-            }
-            return [Math.round(r*255),Math.round(g*255),Math.round(b*255)];
-        }
-        function parseColor(value){
-            const v=value.trim();
-            if(/^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/.test(v)){
-                if(v.length===4){
-                    return '#'+[1,2,3].map(i=>v[i]+v[i]).join('').toUpperCase();
-                }
-                return v.toUpperCase();
-            }
-            let m=v.match(/^rgb\s*\(\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})\s*\)$/i);
-            if(m){
-                return rgbToHex(+m[1],+m[2],+m[3]);
-            }
-            m=v.match(/^hsl\s*\(\s*(\d{1,3})\s*,\s*(\d{1,3})%\s*,\s*(\d{1,3})%\s*\)$/i);
-            if(m){
-                const rgb = hslToRgb(+m[1],+m[2],+m[3]);
-                return rgbToHex(...rgb);
-            }
-            return null;
-        }
-        function updateColorPreview(hex){
-            colorPreview.style.background = hex;
-            colPick.value = hex;
-            colHex.value = hex;
-        }
-        colPick.oninput=()=>{
-            updateColorPreview(colPick.value);
-            const hex=colPick.value.replace('#','');
-            const r=parseInt(hex.substr(0,2),16),g=parseInt(hex.substr(2,2),16),b=parseInt(hex.substr(4,2),16);
-            colRgb.value=`rgb(${r},${g},${b})`;
-            colHsl.value=rgbToHsl(r,g,b);
-        };
+        colPick.oninput=()=>colHex.value=colPick.value;
         document.querySelector('.color-convert').onclick=()=>{
-            const hex=parseColor(colHex.value);
-            if(!hex){
-                showToast('请输入合法色值，例如 #ff6600、rgb(255,102,0)、hsl(24,100%,60%)','error');
-                return;
-            }
-            const r=parseInt(hex.substr(1,2),16), g=parseInt(hex.substr(3,2),16), b=parseInt(hex.substr(5,2),16);
-            updateColorPreview(hex);
+            let h=colHex.value.replace('#','');
+            if(h.length!==6)return;
+            let r=parseInt(h.substr(0,2),16),g=parseInt(h.substr(2,2),16),b=parseInt(h.substr(4,2),16);
             colRgb.value=`rgb(${r},${g},${b})`;
-            colHsl.value=rgbToHsl(r,g,b);
+            r/=255;g/=255;b/=255;
+            let max=Math.max(r,g,b),min=Math.min(r,g,b),hue,sat,lig=(max+min)/2;
+            if(max===min)hue=sat=0;
+            else{
+                let d=max-min;
+                sat=lig>0.5?d/(2-max-min):d/(max+min);
+                switch(max){
+                    case r:hue=((g-b)/d+(g<b?6:0))/6;break;
+                    case g:hue=((b-r)/d+2)/6;break;
+                    case b:hue=((r-g)/d+4)/6;break;
+                }
+            }
+            colHsl.value=`hsl(${Math.round(hue*360)},${Math.round(sat*100)}%,${Math.round(lig*100)}%)`;
         };
 
         // ========== CSS格式化压缩 ==========
         const cssIn=document.querySelector('.css-input'),cssOut=document.querySelector('.css-output');
         document.querySelector('.css-beautify').onclick=()=>{
-            let s=cssIn.value.replace(/\/\*[\s\S]*?\*\//g,'').replace(/\s+/g,' ');
-            s=s.replace(/\s*([{}:;,])\s*/g,'$1');
-            s=s.replace(/([{};])(?=[^\n])/g,'$1\n');
-            s=s.replace(/\n\s+/g,'\n  ').trim();
-            cssOut.value=s;
+            let s=cssIn.value.replace(/\{/g,' {\n  ').replace(/\}/g,'\n}\n').replace(/;/g,';\n  ');
+            cssOut.value=s.trim();
         };
         document.querySelector('.css-minify').onclick=()=>{
-            let s=cssIn.value.replace(/\/\*[\s\S]*?\*\//g,'').replace(/\s+/g,' ').replace(/\s*([{}:;,])\s*/g,'$1').trim();
+            let s=cssIn.value.replace(/\/\*[\s\S]*?\*\//g,'').replace(/\s+/g,' ').replace(/\s*([{:;},])\s*/g,'$1').trim();
             cssOut.value=s;
         };
         document.querySelector('.css-clear').onclick=()=>cssIn.value='',cssOut.value='';
@@ -1091,26 +720,38 @@
             for(let i=0;i<17;i++)sum+=parseInt(s[i])*idW[i];
             return idC[sum%11];
         }
+        const idResultGrid=document.querySelector('.id-result-grid');
+        let currentIdResults=[];
         document.querySelector('.id-create').onclick=()=>{
             let area=document.querySelector('.id-province').value;
             let sex=document.querySelector('.id-gender').value;
             let birth=document.querySelector('.id-birth').value.replace(/-/g,'');
-            let num=Math.floor(Math.random()*900)+100;
-            if(sex==='male'&&num%2===0)num++;
-            if(sex==='female'&&num%2!==0)num++;
-            let pre=area+birth+num;
-            document.querySelector('.id-result').value=pre+getIDCode(pre);
+            let count=parseInt(document.querySelector('.id-count').value,10)||1;
+            let ids=[];
+            for(let i=0;i<count;i++){
+                let num=Math.floor(Math.random()*900)+100;
+                if(sex==='male'&&num%2===0)num++;
+                if(sex==='female'&&num%2!==0)num++;
+                let pre=area+birth+num;
+                ids.push(pre+getIDCode(pre));
+            }
+            currentIdResults=ids;
+            idResultGrid.innerHTML=ids.map(id=>`<div class="p-3 rounded-lg bg-white dark:bg-darkCard border border-gray-200 dark:border-gray-700 break-all">${id}</div>`).join('');
         };
         document.querySelector('.id-check').onclick=()=>{
-            let id=document.querySelector('.id-result').value;
-            if(id.length!==18)return document.querySelector('.id-info').value='格式错误';
-            let ok=getIDCode(id.slice(0,17))===id[17].toUpperCase();
-            let bir=`${id.slice(6,10)}-${id.slice(10,12)}-${id.slice(12,14)}`;
-            let sx=parseInt(id[16])%2===1?'男':'女';
-            let age=new Date().getFullYear()-parseInt(id.slice(6,10));
-            document.querySelector('.id-info').value=`合法性：${ok?'合法':'非法'}\n生日：${bir}\n性别：${sx}\n年龄：${age}岁`;
+            let ids=currentIdResults.slice();
+            if(ids.length===0) return document.querySelector('.id-info').value='请先生成身份证号码';
+            let results=ids.map(id=>{
+                if(id.length!==18) return `号码：${id} → 格式错误`;
+                let ok=getIDCode(id.slice(0,17))===id[17].toUpperCase();
+                let bir=`${id.slice(6,10)}-${id.slice(10,12)}-${id.slice(12,14)}`;
+                let sx=parseInt(id[16])%2===1?'男':'女';
+                let age=new Date().getFullYear()-parseInt(id.slice(6,10));
+                return `号码：${id} → ${ok?'合法':'非法'}，生日：${bir}，性别：${sx}，年龄：${age}岁`;
+            });
+            document.querySelector('.id-info').value=results.join('\n');
         };
-        document.querySelector('.id-copy').onclick=()=>copyText(document.querySelector('.id-result').value);
+        document.querySelector('.id-copy').onclick=()=>copyText(currentIdResults.join('\n'));
 
         // ========== 手机号生成 ==========
         const phoneRes=document.querySelector('.phone-result');
@@ -1199,8 +840,8 @@
                 c=GG(c,d,a,b,x[k+15],14,0xD8A1E681);
                 b=GG(b,c,d,a,x[k+4],20,0xE7D3FBC8);
                 a=GG(a,b,c,d,x[k+9],5,0x21E1CDE6);
-                d=GG(d,a,b,c,x[k+14],9,0xF4D50D87);
-                c=GG(c,d,a,b,x[k+3],14,0xFCEFA3F8);
+                d=GG(d,a,b,c,x[k+14],9,0xC33707D6);
+                c=GG(c,d,a,b,x[k+3],14,0xF4D50D87);
                 b=GG(b,c,d,a,x[k+8],20,0x455A14ED);
                 a=GG(a,b,c,d,x[k+13],5,0xA9E3E905);
                 d=GG(d,a,b,c,x[k+2],9,0xFCEFA3F8);
@@ -1259,15 +900,15 @@
         document.querySelector('.md5-copy').onclick=()=>copyText(md5Low.value);
     </script>
 
-<!-- 百度统计代码 -->
-<script>
-var _hmt = _hmt || [];
-(function() {
-  var hm = document.createElement("script");
-  hm.src = "https://hm.baidu.com/hm.js?e8b551d034ac6840afcfaf0f2f02e5b3";
-  var s = document.getElementsByTagName("script")[0]; 
-  s.parentNode.insertBefore(hm, s);
-})();
-</script>
+    <!-- 百度统计代码 已添加 -->
+    <script>
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?e8b551d034ac6840afcfaf0f2f02e5b3";
+      var s = document.getElementsByTagName("script")[0]; 
+      s.parentNode.insertBefore(hm, s);
+    })();
+    </script>
 </body>
 </html>
