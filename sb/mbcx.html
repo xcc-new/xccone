@@ -3,81 +3,27 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>名表验真 · 一站式查询台</title>
-<meta name="description" content="按品牌类型统一查询名表真伪验证渠道：官方在线验证、官方送检、权威第三方鉴定，告别逐家官网奔波。">
+<title>名表验真 · 查询入口</title>
+<meta name="description" content="选择品牌，点击名称跳转到对应官方查询入口，输入序列号核验真伪。">
 <link rel="preconnect" href="https://miaoda.feishu.cn">
 <link rel="stylesheet" href="https://miaoda.feishu.cn/fonts/css2?family=Noto+Serif+SC:wght@500;700;900&family=Noto+Sans+SC:wght@300;400;500;700&display=swap">
 <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-
-<!-- ===== Hero ===== -->
-<header class="hero">
-  <div class="hero__inner">
-    <p class="hero__eyebrow">WATCH AUTHENTICATION DESK</p>
-    <h1 class="hero__title">名表验真 · 一站式查询台</h1>
-    <p class="hero__lead">选定品牌类型与具体品牌，输入序列号即可核验：官方支持在线查询的品牌一键跳转官方查询页；官方不支持在线查询的，给出最权威的送检与第三方鉴定路径。不用再逐家官网奔波。</p>
-
-    <!-- 三档验证路径图例（签名元素：表盘式状态指示） -->
-    <div class="verify-legend" role="group" aria-label="验证路径图例">
-      <div class="legend-item" data-type="online">
-        <span class="legend-dot legend-dot--online" aria-hidden="true"></span>
-        <div class="legend-text">
-          <strong>官方在线可查</strong>
-          <small>品牌官网提供序列号 / 编号验证</small>
-        </div>
-      </div>
-      <div class="legend-item" data-type="service">
-        <span class="legend-dot legend-dot--service" aria-hidden="true"></span>
-        <div class="legend-text">
-          <strong>官方送检</strong>
-          <small>官方服务中心接受维修 / 检测即强验证</small>
-        </div>
-      </div>
-      <div class="legend-item" data-type="third">
-        <span class="legend-dot legend-dot--third" aria-hidden="true"></span>
-        <div class="legend-text">
-          <strong>权威第三方</strong>
-          <small>中检 / 国家钟表质检中心等专业鉴定</small>
-        </div>
-      </div>
-    </div>
-  </div>
-</header>
-
 <main class="shell">
+  <p class="eyebrow">WATCH AUTHENTICATION</p>
+  <h1 class="title">名表验真 · 查询入口</h1>
+  <p class="lead">选择品牌，点击名称跳转到对应官方查询入口，输入序列号核验真伪。</p>
 
-  <!-- ===== 品牌分组选择 ===== -->
-  <section class="groups" aria-labelledby="groups-title">
-    <h2 class="section-title" id="groups-title">一、选择品牌类型</h2>
-    <div class="group-tabs" id="groupTabs" role="tablist"></div>
+  <section class="brands">
+    <h2 class="section-title">选择具体品牌</h2>
+    <div class="brand-list" id="brandList"></div>
   </section>
-
-  <!-- ===== 品牌列表 ===== -->
-  <section class="brands-section" aria-labelledby="brands-title">
-    <h2 class="section-title" id="brands-title">二、选择具体品牌</h2>
-    <p class="section-hint" id="groupHint"></p>
-    <div class="brand-grid" id="brandGrid" role="list"></div>
-  </section>
-
-  <!-- ===== 品牌详情 ===== -->
-  <section class="detail-section" aria-labelledby="detail-title">
-    <h2 class="section-title" id="detail-title">三、输入序列号查询 · 验证路径</h2>
-    <div id="detailCard" class="detail-card" aria-live="polite"></div>
-  </section>
-
-  <!-- ===== 通用权威鉴定机构 ===== -->
-  <section class="agencies" aria-labelledby="agencies-title">
-    <h2 class="section-title" id="agencies-title">四、通用权威鉴定机构</h2>
-    <p class="section-hint">品牌官方渠道之外，以下机构可对所有品牌腕表出具专业鉴定结论，适合二手交易、存疑表或官方不便受理时使用。</p>
-    <div class="agency-grid" id="agencyGrid"></div>
-  </section>
-
-  <!-- ===== 页脚 ===== -->
-  <footer class="footer">
-    <p>本页面汇总各品牌的官方序列号查询入口与权威第三方鉴定机构。请注意：仅部分品牌（如卡地亚、天梭、美度、Apple、卡西欧等）提供官方在线查询；劳力士、欧米茄、浪琴等多数高端品牌官方不提供在线验真，需通过官方送检或第三方专业鉴定。查询入口与服务中心信息以品牌官网最新公布为准。</p>
-  </footer>
 </main>
+
+<footer class="footer">
+  <p>品牌查询入口以官方最新公布为准；当前仅收录卡地亚，更多品牌将陆续补充。</p>
+</footer>
 
 <script src="data.js"></script>
 <script src="app.js"></script>
