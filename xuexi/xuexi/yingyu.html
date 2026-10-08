@@ -728,7 +728,7 @@ function esc(s){ return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&l
 function vibrate(pattern){ if(navigator.vibrate) navigator.vibrate(pattern); }
 
 /* =========================================================
-   语音朗读（长句自动拆分 + 多接口轮询 + 系统TTS兜底）
+   语音朗读（StreamElements + Edge TTS + 系统 TTS 兜底）
    ========================================================= */
 let currentAudio = null;
 let ttsTimer = null;
@@ -736,8 +736,14 @@ let playQueue = [];
 let playing = false;
 
 const TTS_SOURCES = [
-  { name: '有道', url: (t) => `https://dict.youdao.com/dictvoice?audio=${encodeURIComponent(t)}&type=2` },
-  { name: '百度', url: (t) => `https://fanyi.baidu.com/gettts?lan=en&text=${encodeURIComponent(t)}&spd=3&source=web` }
+  { 
+    name: 'SE', 
+    url: (t) => `https://api.streamelements.com/kappa/v2/speech?voice=Brian&text=${encodeURIComponent(t)}` 
+  },
+  { 
+    name: 'Edge', 
+    url: (t) => `https://api.edge-tts.com/tts?text=${encodeURIComponent(t)}&voice=en-US-AriaNeural&rate=0&pitch=0` 
+  }
 ];
 
 function speak(text, rate){
@@ -754,10 +760,10 @@ function speak(text, rate){
   playNext(rate);
 }
 
-/* 把长句按标点拆成适合在线 TTS 的短片段 */
+/* 把长句按标点拆成适合在线 TTS 的短片段（40 字符以内） */
 function splitText(text){
   text = String(text).trim();
-  if(text.length <= 60) return [text];
+  if(text.length <= 40) return [text];
 
   const sentences = text.match(/[^.!?;]+[.!?;]?/g) || [text];
   const result = [];
@@ -765,15 +771,22 @@ function splitText(text){
   sentences.forEach(s => {
     s = s.trim();
     if(!s) return;
-    if(s.length <= 60){
+    if(s.length <= 40){
       result.push(s);
     } else {
       const parts = s.split(',').map(p => p.trim()).filter(p => p);
+      let buf = '';
       parts.forEach((p, i) => {
-        if(!p) return;
-        const suffix = (i < parts.length - 1) ? ',' : '';
-        result.push(p + suffix);
+        const isLast = (i === parts.length - 1);
+        const piece = isLast ? p : p + ',';
+        if((buf + ' ' + piece).trim().length <= 40){
+          buf = (buf + ' ' + piece).trim();
+        } else {
+          if(buf) result.push(buf);
+          buf = piece;
+        }
       });
+      if(buf) result.push(buf);
     }
   });
 
