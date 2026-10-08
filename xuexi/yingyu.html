@@ -728,51 +728,192 @@ function esc(s){ return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&l
 function vibrate(pattern){ if(navigator.vibrate) navigator.vibrate(pattern); }
 
 /* =========================================================
-   语音朗读（在线 TTS + 系统 TTS 自动兜底）
-   在线音源：有道词典 TTS（免费、无 Key、音质接近真人）
+   语音朗读（AudioContext + StreamElements/Edge + 系统TTS兜底）
+   使用 AudioContext 突破移动端"用户手势"限制，实现连续播放
    ========================================================= */
-let currentAudio = null;
+let audioCtx = null;
+let playQueue = [];
+let playing = false;
+let currentSource = null;
 
+const TTS_SOURCES = [
+  { 
+    name: 'SE', 
+    url: (t) => `https://api.streamelements.com/kappa/v2/speech?voice=Brian&text=${encodeURIComponent(t)}` 
+  },
+  { 
+    name: 'Edge', 
+    url: (t) => `https://api.edge-tts.com/tts?text=${encodeURIComponent(t)}&voice=en-US-AriaNeural&rate=0&pitch=0` 
+  }
+];
+
+/* 初始化 / 解锁 AudioContext（首次点击时调用） */
+function ensureAudioContext(){
+  if(!audioCtx){
+    try {
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    } catch(e){ console.warn('无法创建 AudioContext', e); return null; }
+  }
+  if(audioCtx.state === 'suspended'){
+    audioCtx.resume();
+  }
+  return audioCtx;
+}
+
+/* 首次用户交互时解锁 AudioContext */
+document.addEventListener('touchstart', () => { ensureAudioContext(); }, { once: true, passive: true });
+document.addEventListener('click', () => { ensureAudioContext(); }, { once: true });
+
+/* 主入口 */
 function speak(text, rate){
   if(!text) return;
+  stopAll();
+  const segments = splitText(text);
+  playQueue = segments.slice();
+  playNext(rate);
+}
 
-  // 停止上一段音频
-  if(currentAudio){
-    try { currentAudio.pause(); } catch(e){}
-    currentAudio = null;
+/* 停止当前播放 */
+function stopAll(){
+  if(currentSource){
+    try { currentSource.stop(); } catch(e){}
+    currentSource = null;
   }
   if('speechSynthesis' in window) speechSynthesis.cancel();
+  playQueue = [];
+  playing = false;
+}
 
-  // 有道 TTS：type=2 美音，type=1 英音
-  const url = `https://dict.youdao.com/dictvoice?audio=${encodeURIComponent(text)}&type=2`;
-  const audio = new Audio(url);
-  audio.preload = 'auto';
-  currentAudio = audio;
+/* 长句拆分（40字符一段） */
+function splitText(text){
+  text = String(text).trim();
+  if(text.length <= 40) return [text];
 
-  let fallbackUsed = false;
-  const fallback = () => {
-    if(fallbackUsed) return;
-    fallbackUsed = true;
-    console.warn('在线 TTS 失败，回退到系统语音');
-    systemSpeak(text, rate);
-  };
+  const sentences = text.match(/[^.!?;]+[.!?;]?/g) || [text];
+  const result = [];
 
-  audio.onerror = fallback;
-  // 5 秒还没开始播放就回退
-  const timer = setTimeout(fallback, 5000);
-  audio.onplaying = () => clearTimeout(timer);
-  audio.onended = () => clearTimeout(timer);
+  sentences.forEach(s => {
+    s = s.trim();
+    if(!s) return;
+    if(s.length <= 40){
+      result.push(s);
+    } else {
+      const parts = s.split(',').map(p => p.trim()).filter(p => p);
+      let buf = '';
+      parts.forEach((p, i) => {
+        const isLast = (i === parts.length - 1);
+        const piece = isLast ? p : p + ',';
+        if((buf + ' ' + piece).trim().length <= 40){
+          buf = (buf + ' ' + piece).trim();
+        } else {
+          if(buf) result.push(buf);
+          buf = piece;
+        }
+      });
+      if(buf) result.push(buf);
+    }
+  });
 
-  audio.play().catch(e => {
-    clearTimeout(timer);
-    console.warn('在线 TTS 播放失败:', e.message);
-    fallback();
+  return result.length ? result : [text];
+}
+
+/* 逐段播放 */
+function playNext(rate){
+  if(playQueue.length === 0){ playing = false; return; }
+  playing = true;
+  const segment = playQueue.shift();
+  trySource(segment, 0, rate, () => {
+    setTimeout(() => playNext(rate), 150);
   });
 }
 
-/* 系统 TTS 兜底（离线或在线失败时使用） */
-function systemSpeak(text, rate){
-  if(!('speechSynthesis' in window)){ toast('当前浏览器不支持语音朗读'); return; }
+/* 尝试用某个在线接口播放，失败切下一个，全部失败用系统 TTS */
+function trySource(text, index, rate, onDone){
+  if(index >= TTS_SOURCES.length){
+    console.warn('[TTS] 所有在线接口失败，改用系统TTS:', text);
+    systemSpeak(text, rate, onDone);
+    return;
+  }
+
+  const src = TTS_SOURCES[index];
+  const url = src.url(text);
+
+  const ctx = ensureAudioContext();
+  if(!ctx){
+    fallbackAudioPlay(url, text, index, rate, onDone, src.name);
+    return;
+  }
+
+  let advanced = false;
+  const timer = setTimeout(() => {
+    if(advanced) return;
+    advanced = true;
+    console.warn(`[TTS] ${src.name} 超时:`, text);
+    trySource(text, index + 1, rate, onDone);
+  }, 6000);
+
+  fetch(url)
+    .then(resp => {
+      if(!resp.ok) throw new Error('HTTP ' + resp.status);
+      return resp.arrayBuffer();
+    })
+    .then(buf => ctx.decodeAudioData(buf))
+    .then(decoded => {
+      if(advanced) return;
+      clearTimeout(timer);
+      const source = ctx.createBufferSource();
+      source.buffer = decoded;
+      source.connect(ctx.destination);
+      source.onended = () => {
+        if(currentSource === source) currentSource = null;
+        if(onDone) onDone();
+      };
+      currentSource = source;
+      source.start(0);
+    })
+    .catch(err => {
+      if(advanced) return;
+      advanced = true;
+      clearTimeout(timer);
+      console.warn(`[TTS] ${src.name} 失败:`, err.message, '|', text);
+      trySource(text, index + 1, rate, onDone);
+    });
+}
+
+/* 无 AudioContext 时的普通 Audio 回退 */
+function fallbackAudioPlay(url, text, index, rate, onDone, name){
+  const audio = new Audio(url);
+  let advanced = false;
+  const timer = setTimeout(() => {
+    if(advanced) return;
+    advanced = true;
+    trySource(text, index + 1, rate, onDone);
+  }, 6000);
+  audio.onplaying = () => clearTimeout(timer);
+  audio.onended = () => { clearTimeout(timer); if(onDone) onDone(); };
+  audio.onerror = () => {
+    if(advanced) return;
+    advanced = true;
+    clearTimeout(timer);
+    console.warn(`[TTS] ${name} 加载错误:`, text);
+    trySource(text, index + 1, rate, onDone);
+  };
+  audio.play().catch(e => {
+    if(advanced) return;
+    advanced = true;
+    clearTimeout(timer);
+    console.warn(`[TTS] ${name} 被拒绝:`, e.message);
+    trySource(text, index + 1, rate, onDone);
+  });
+}
+
+/* 系统 TTS 兜底 */
+function systemSpeak(text, rate, onDone){
+  if(!('speechSynthesis' in window)){
+    toast('当前浏览器不支持语音朗读');
+    if(onDone) onDone();
+    return;
+  }
 
   const isMobile = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
   rate = rate || (isMobile ? 0.55 : 0.8);
@@ -780,13 +921,7 @@ function systemSpeak(text, rate){
 
   const voices = speechSynthesis.getVoices();
   const preferred = [
-    /Google US English/i,
-    /Samantha/i,
-    /Microsoft Aria/i,
-    /Microsoft Zira/i,
-    /en-US/i,
-    /en-GB/i,
-    /^en/i
+    /Google US English/i, /Samantha/i, /Microsoft Aria/i, /Microsoft Zira/i, /en-US/i, /en-GB/i, /^en/i
   ];
   let voice = null;
   for (const p of preferred) {
@@ -802,8 +937,10 @@ function systemSpeak(text, rate){
     u.pitch = pitch;
     u.volume = 1;
     if(voice) u.voice = voice;
+    u.onend = () => { if(onDone) onDone(); };
+    u.onerror = () => { if(onDone) onDone(); };
     speechSynthesis.speak(u);
-  }, 100);
+  }, 80);
 }
 
 /* =========================================================
