@@ -438,7 +438,7 @@ const UNIT_TITLES = {
 };
 
 /* =========================================================
-   课文数据（按 Part A / Part B 分别组织 Let's learn 和 Let's talk）
+   课文数据（Part A / Part B 分别组织 Let's learn 和 Let's talk）
    ========================================================= */
 const LESSON_DATA = {
   "5上": {
@@ -728,23 +728,82 @@ function esc(s){ return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&l
 function vibrate(pattern){ if(navigator.vibrate) navigator.vibrate(pattern); }
 
 /* =========================================================
-   语音朗读
+   语音朗读（在线 TTS + 系统 TTS 自动兜底）
+   在线音源：有道词典 TTS（免费、无 Key、音质接近真人）
    ========================================================= */
-function speak(text, rate=0.82){
+let currentAudio = null;
+
+function speak(text, rate){
+  if(!text) return;
+
+  // 停止上一段音频
+  if(currentAudio){
+    try { currentAudio.pause(); } catch(e){}
+    currentAudio = null;
+  }
+  if('speechSynthesis' in window) speechSynthesis.cancel();
+
+  // 有道 TTS：type=2 美音，type=1 英音
+  const url = `https://dict.youdao.com/dictvoice?audio=${encodeURIComponent(text)}&type=2`;
+  const audio = new Audio(url);
+  audio.preload = 'auto';
+  currentAudio = audio;
+
+  let fallbackUsed = false;
+  const fallback = () => {
+    if(fallbackUsed) return;
+    fallbackUsed = true;
+    console.warn('在线 TTS 失败，回退到系统语音');
+    systemSpeak(text, rate);
+  };
+
+  audio.onerror = fallback;
+  // 5 秒还没开始播放就回退
+  const timer = setTimeout(fallback, 5000);
+  audio.onplaying = () => clearTimeout(timer);
+  audio.onended = () => clearTimeout(timer);
+
+  audio.play().catch(e => {
+    clearTimeout(timer);
+    console.warn('在线 TTS 播放失败:', e.message);
+    fallback();
+  });
+}
+
+/* 系统 TTS 兜底（离线或在线失败时使用） */
+function systemSpeak(text, rate){
   if(!('speechSynthesis' in window)){ toast('当前浏览器不支持语音朗读'); return; }
+
+  const isMobile = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
+  rate = rate || (isMobile ? 0.55 : 0.8);
+  const pitch = isMobile ? 0.95 : 1.03;
+
   const voices = speechSynthesis.getVoices();
-  const voice =
-    voices.find(v => /en-US/i.test(v.lang) && /Samantha|Google US English|Aria|Zira/i.test(v.name)) ||
-    voices.find(v => /en-US/i.test(v.lang)) ||
-    voices.find(v => /^en/i.test(v.lang)) || null;
+  const preferred = [
+    /Google US English/i,
+    /Samantha/i,
+    /Microsoft Aria/i,
+    /Microsoft Zira/i,
+    /en-US/i,
+    /en-GB/i,
+    /^en/i
+  ];
+  let voice = null;
+  for (const p of preferred) {
+    voice = voices.find(v => p.test(v.name) || p.test(v.lang));
+    if (voice) break;
+  }
+
   speechSynthesis.cancel();
   setTimeout(() => {
     const u = new SpeechSynthesisUtterance(text);
-    u.lang = 'en-US'; u.rate = rate; u.pitch = 1.03; u.volume = 1;
+    u.lang = voice ? voice.lang : 'en-US';
+    u.rate = rate;
+    u.pitch = pitch;
+    u.volume = 1;
     if(voice) u.voice = voice;
-    u.onerror = e => { console.warn('TTS 出错:', e.error); if(e.error === 'not-allowed') toast('请先点击页面任意位置再试'); };
     speechSynthesis.speak(u);
-  }, 120);
+  }, 100);
 }
 
 /* =========================================================
