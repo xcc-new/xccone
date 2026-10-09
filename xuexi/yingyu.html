@@ -237,6 +237,96 @@ main{flex:1;padding:4px 16px 40px}
   box-shadow:var(--shadow);transition:transform .15s;
 }
 .lesson-entry:active{transform:scale(.98)}
+.history-overlay{
+  position:fixed;inset:0;background:rgba(34,48,74,.6);z-index:70;
+  display:flex;align-items:center;justify-content:center;padding:20px;
+  opacity:0;pointer-events:none;transition:opacity .25s;
+  backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);
+}
+.history-overlay.show{opacity:1;pointer-events:auto}
+.history-modal{
+  background:#fff;border-radius:24px;width:100%;max-width:520px;
+  max-height:80vh;display:flex;flex-direction:column;overflow:hidden;
+  box-shadow:0 20px 50px rgba(34,48,74,.3);
+  transform:scale(.95);transition:transform .25s;
+}
+.history-overlay.show .history-modal{transform:scale(1)}
+.history-header{
+  padding:18px 20px;border-bottom:1px solid var(--line);
+  display:flex;align-items:center;justify-content:space-between;
+}
+.history-header h3{font-size:16px;font-weight:800}
+.history-close{
+  width:32px;height:32px;border:none;border-radius:10px;background:#f2f5fb;
+  color:var(--muted);font-size:16px;cursor:pointer;font-family:inherit;
+}
+.history-body{padding:12px 20px;overflow-y:auto;flex:1}
+.history-item{
+  display:flex;align-items:center;gap:12px;padding:13px 0;
+  border-bottom:1px solid var(--line);
+}
+.history-item:last-child{border-bottom:none}
+.hi-date{flex:0 0 62px}
+.hi-date .d{font-size:13px;font-weight:800;color:var(--text)}
+.hi-date .t{font-size:11px;color:var(--muted);margin-top:2px}
+.hi-info{flex:1}
+.hi-info .u{font-size:14px;font-weight:700}
+.hi-info .m{font-size:11.5px;color:var(--muted);margin-top:2px}
+.hi-score{flex:0 0 auto;text-align:right}
+.hi-score .n{font-size:15px;font-weight:800}
+.hi-score .n.ok{color:var(--ok)}
+.hi-score .n.bad{color:var(--bad)}
+.hi-score .l{font-size:10.5px;color:var(--muted)}
+.history-empty{text-align:center;padding:40px 20px;color:var(--muted);font-size:14px}
+.as-overlay{
+  position:fixed;inset:0;background:rgba(34,48,74,.6);z-index:60;
+  display:flex;align-items:flex-end;justify-content:center;
+  opacity:0;pointer-events:none;transition:opacity .25s;
+  backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);
+}
+.as-overlay.show{opacity:1;pointer-events:auto}
+.as-modal{
+  background:#fff;border-radius:24px 24px 0 0;width:100%;max-width:560px;
+  max-height:80vh;display:flex;flex-direction:column;overflow:hidden;
+  transform:translateY(100%);transition:transform .25s;
+  padding:20px 20px 28px;
+}
+.as-overlay.show .as-modal{transform:translateY(0)}
+.as-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.as-header h3{font-size:16px;font-weight:800}
+.as-close{
+  width:32px;height:32px;border:none;border-radius:10px;background:#f2f5fb;
+  color:var(--muted);font-size:16px;cursor:pointer;font-family:inherit;
+}
+.as-stats{display:flex;gap:10px;margin-bottom:16px}
+.as-stat{
+  flex:1;text-align:center;padding:10px;border-radius:12px;background:#f7f9fd;
+}
+.as-stat .n{font-size:20px;font-weight:800;line-height:1}
+.as-stat .l{font-size:11px;color:var(--muted);margin-top:4px}
+.as-stat.ok .n{color:var(--ok)}
+.as-stat.bad .n{color:var(--bad)}
+.as-stat.todo .n{color:var(--muted)}
+.as-grid{
+  display:grid;grid-template-columns:repeat(6,1fr);gap:10px;
+  overflow-y:auto;padding-bottom:8px;
+}
+.as-item{
+  aspect-ratio:1;border:none;border-radius:12px;cursor:pointer;
+  background:#eef2fa;color:var(--text);font-size:15px;font-weight:700;
+  font-family:inherit;transition:transform .1s;
+  display:flex;align-items:center;justify-content:center;
+}
+.as-item:active{transform:scale(.92)}
+.as-item.right{background:var(--ok);color:#fff}
+.as-item.wrong{background:var(--bad);color:#fff}
+.as-item.current{outline:3px solid var(--primary);outline-offset:1px}
+.as-legend{
+  display:flex;gap:16px;justify-content:center;margin-top:16px;
+  font-size:12px;color:var(--muted);
+}
+.as-legend span{display:flex;align-items:center;gap:5px}
+.as-dot{width:10px;height:10px;border-radius:3px;display:inline-block}
 .study-swipe-hint{
   text-align:center;font-size:11.5px;color:#b6c4dc;margin-top:14px;letter-spacing:.5px;
 }
@@ -255,6 +345,31 @@ main{flex:1;padding:4px 16px 40px}
   <main id="main"></main>
 </div>
 <div class="toast" id="toast"></div>
+<div class="history-overlay" id="historyOverlay">
+  <div class="history-modal">
+    <div class="history-header">
+      <h3>📊 历史做题记录</h3>
+      <button class="history-close" data-action="close-history">✕</button>
+    </div>
+    <div class="history-body" id="historyBody"></div>
+  </div>
+</div>
+<div class="as-overlay" id="asOverlay">
+  <div class="as-modal">
+    <div class="as-header">
+      <h3>答题卡</h3>
+      <button class="as-close" data-action="close-as">✕</button>
+    </div>
+    <div class="as-stats" id="asStats"></div>
+    <div class="as-grid" id="asGrid"></div>
+    <div class="as-legend">
+      <span><i class="as-dot" style="background:#26c281"></i>答对</span>
+      <span><i class="as-dot" style="background:#ee5253"></i>答错</span>
+      <span><i class="as-dot" style="background:#eef2fa"></i>未答</span>
+      <span><i class="as-dot" style="background:#4f7cff"></i>当前</span>
+    </div>
+  </div>
+</div>
 <div class="lesson-overlay" id="lessonOverlay">
   <div class="lesson-modal">
     <div class="lesson-header">
@@ -559,11 +674,12 @@ let STORE = (() => {
         if (!parsed.daily) parsed.daily = {};
         if (typeof parsed.streak !== 'number') parsed.streak = 0;
         if (!parsed.lastDay) parsed.lastDay = '';
+        if (!parsed.history) parsed.history = [];
         return parsed;
       }
     }
   } catch(e) {}
-  return {cards:{}, daily:{}, streak:0, lastDay:''};
+  return {cards:{}, daily:{}, streak:0, lastDay:'', history:[]};
 })();
 function persist(){ try { localStorage.setItem(STORE_KEY, JSON.stringify(STORE)); } catch(e){} }
 const state = {
@@ -766,7 +882,9 @@ function startSession(mode){
     words = getWrongWords();
     if (!words.length) { toast('暂无错题，先去做几道题吧'); state.wrongMode = false; state.view = 'home'; render(); return; }
   } else {
-    words = getWords(state.grade, state.sem, state.unit);
+    words = getWords(state.grade, state.sem, state.unit).map(w => ({
+      ...w, id: cardId(state.grade, state.sem, state.unit, w.en)
+    }));
     if (!words.length){ toast('该单元暂无词汇'); return; }
   }
   const now = Date.now();
@@ -775,7 +893,7 @@ function startSession(mode){
   const rest = shuffle(withMeta.filter(w => w.due > now));
   let queue = [...dueList, ...rest];
   if(queue.length > 50) queue = queue.slice(0, 50);
-  state.queue = queue; state.idx = 0; state.mode = mode;
+  state.queue = queue.map(w => ({...w, _status: null})); state.idx = 0; state.mode = mode;
   state.stats = {right:0, wrong:0}; state.wrongWords = []; state.extraDone = {};
   state.flipped = false; state.options = null; state.answered = false;
   state.picked = null; state.spellingValue = ''; state.view = 'study'; state.lessonOpen = false;
@@ -794,14 +912,13 @@ function judge(quality){
   const w = currentWord();
   if(!w) return;
   const correct = quality >= 3;
+  w._status = correct ? 'right' : 'wrong';
   updateCardSM2(w.id, quality);
   recordDaily();
   if(correct){ state.stats.right++; vibrate(30); }
   else {
     state.stats.wrong++; vibrate([100,50,100]);
     if(!state.wrongWords.find(x=>x.en===w.en)) state.wrongWords.push(w);
-    const cnt = state.extraDone[w.en] || 0;
-    if(cnt < 1){ state.extraDone[w.en] = cnt+1; state.queue.push({...w}); }
   }
   nextCard();
 }
@@ -857,17 +974,26 @@ function renderUnits(){
     </div>
     ${(() => {
       const wc = getWrongCount();
-      return wc > 0 ? `
-        <button class="wrongbook-card fade-in" data-action="enter-wrongbook">
+      const sub = wc > 0 ? `${wc} 个错题待巩固，点击开始针对性练习` : '暂无错题，先去练习几道题吧';
+      return `
+        <button class="wrongbook-card fade-in" data-action="enter-wrongbook" ${wc===0?'style="opacity:.6"':''}>
           <div class="wb-emoji">📕</div>
           <div class="wb-info">
             <div class="t">错题本</div>
-            <div class="s">${wc} 个错题待巩固，点击开始针对性练习</div>
+            <div class="s">${sub}</div>
           </div>
           <div class="unit-arrow">›</div>
         </button>
-      ` : '';
+      `;
     })()}
+        <button class="mode-item" data-action="open-history" style="margin-bottom:6px">
+      <div class="mode-emoji" style="background:#e8f0ff">📊</div>
+      <div class="mode-info">
+        <div class="t">历史做题记录</div>
+        <div class="s">查看历次练习的答对/答错统计</div>
+      </div>
+      <div class="unit-arrow">›</div>
+    </button>
     <div class="section-title">按单元学习</div>
     <div class="unit-list">
       ${Object.keys(units).map(u => {
@@ -905,26 +1031,66 @@ function renderModes(){
     sub = '五年级上册 · 选择训练模式';
   }
   setHeader(title, sub, true);
+  // 统计当前单元错题数
+  const unitWrongCount = state.wrongMode ? 0 : (() => {
+    let n = 0;
+    const words = getWords(state.grade, state.sem, state.unit);
+    words.forEach(w => {
+      const id = cardId(state.grade, state.sem, state.unit, w.en);
+      if (inWrongbook(id)) n++;
+    });
+    return n;
+  })();
+  // 查某模式最近一次练习
+  function lastStat(modeKey){
+    const h = (STORE.history||[]).find(r => r.mode === modeKey && (state.wrongMode ? r.unit==='错题复习' : r.unit === ('Unit '+state.unit)));
+    if(!h) return '';
+    const acc = h.total ? Math.round(h.right/h.total*100) : 0;
+    return `上次 ${acc}%（${h.right}对${h.wrong}错）`;
+  }
   const modes = [
-    {k:'card',   e:'🃏', t:'单词卡翻转',   s:'看英文想中文，翻卡自评，支持左右滑动'},
+    {k:'card',   e:'🃏', t:'单词卡翻转',   s:'看英文想中文，翻卡自评'},
     {k:'en2zh',  e:'🔤', t:'看词选义',     s:'看英文，选出正确中文'},
     {k:'zh2en',  e:'🀄', t:'看义选词',     s:'看中文，选出正确英文'},
     {k:'listen', e:'🎧', t:'听音选词',     s:'听发音，选出对应单词'},
     {k:'spell',  e:'✍️', t:'拼写练习',     s:'看中文，手动拼写单词'}
   ];
   const showLesson = !state.wrongMode && !!(LESSON_DATA[`${state.grade}${state.sem}`]?.[state.unit]);
+  const wrongTotal = state.wrongMode ? getWrongWords().length : 0;
   main.innerHTML = `
+    ${state.wrongMode ? `
+      <div style="background:linear-gradient(135deg,#fff5f5,#ffe3e3);border-radius:16px;padding:16px;margin-bottom:12px;box-shadow:var(--shadow)">
+        <div style="font-size:15px;font-weight:800;color:#c0392b">📕 共 ${wrongTotal} 个错题待巩固</div>
+        <div style="font-size:12px;color:#b06050;margin-top:6px;line-height:1.5">选择任意模式开始练习，连续答对 2 次后自动移出错题本</div>
+        <button class="btn btn-ghost" data-action="clear-wrongbook" style="margin-top:10px;padding:7px 14px;font-size:12px;color:var(--muted)">🗑 清空错题本</button>
+      </div>
+    ` : `
+      <div style="background:#fff;border-radius:14px;padding:11px 15px;margin-bottom:12px;box-shadow:var(--shadow);display:flex;align-items:center;gap:10px">
+        <span style="font-size:13px">本单元错题：<b style="color:var(--bad)">${unitWrongCount}</b> 个</span>
+        <span style="flex:1"></span>
+        <button class="btn btn-ghost" data-action="enter-wrongbook" style="padding:7px 14px;font-size:12.5px">📕 练错题</button>
+        <button class="btn btn-ghost" data-action="open-history" style="padding:7px 14px;font-size:12.5px">📊 历史</button>
+      </div>
+    `}
     <div class="mode-list">
-      ${modes.map(m => `
+      ${modes.map(m => {
+        const last = state.wrongMode ? '' : lastStat(({card:'单词卡',en2zh:'看词选义',zh2en:'看义选词',listen:'听音选词',spell:'拼写'})[m.k]);
+        let sub;
+        if (state.wrongMode) {
+          sub = `${m.s} · 本批 ${wrongTotal} 个错题`;
+        } else {
+          sub = last ? `${m.s} · ${last}` : m.s;
+        }
+        return `
         <button class="mode-item" data-action="pick-mode" data-mode="${m.k}">
           <div class="mode-emoji">${m.e}</div>
           <div class="mode-info">
             <div class="t">${m.t}</div>
-            <div class="s">${m.s}</div>
+            <div class="s">${sub}</div>
           </div>
           <div class="unit-arrow">›</div>
-        </button>
-      `).join('')}
+        </button>`;
+      }).join('')}
     </div>
     ${showLesson ? `
       <div style="margin-top:14px">
@@ -1023,6 +1189,7 @@ function renderStudy(){
   main.innerHTML = `
     <div class="study-top">
       <div class="progress-wrap"><i style="width:${pct}%"></i></div>
+      <button class="btn btn-ghost" data-action="open-as" style="padding:8px 12px;font-size:12.5px;box-shadow:none;background:#fff">答题卡</button>
       <div class="study-count">${state.idx+1}/${total}</div>
     </div>
     <div class="study-wrap">
@@ -1054,19 +1221,18 @@ function initSwipe(el){
     const elapsed = Date.now() - startTime;
     if(elapsed > maxTime || Math.abs(distX) < minDistance || Math.abs(distX) < Math.abs(distY)) return;
 
-    if(state.mode === 'card'){
-      // 单词卡：左滑判错，右滑判对
-      if(distX < 0){ if(state.flipped) judge(1); else toast('请先翻转卡片查看答案'); }
-      else { if(state.flipped) judge(4); else toast('请先翻转卡片查看答案'); }
-    } else {
-      // 其他模式：左滑下一题，右滑上一题
-      if(distX < 0){
-        if(!state.answered){ toast(state.mode === 'spell' ? '请先提交答案' : '请先作答'); return; }
+    // 所有模式统一：左滑下一题，右滑上一题
+    if(distX < 0){
+      if(state.mode === 'card'){
+        // 单词卡：滑动直接切题，判分用按钮
         nextCard();
       } else {
-        if(state.idx > 0) prevCard();
-        else toast('已经是第一题了');
+        if(!state.answered){ toast(state.mode === 'spell' ? '请先提交答案' : '请先作答'); return; }
+        nextCard();
       }
+    } else {
+      if(state.idx > 0) prevCard();
+      else toast('已经是第一题了');
     }
   }, {passive:true});
 }
@@ -1090,7 +1256,75 @@ function openLesson(){
   state.lessonOpen = true;
 }
 function closeLesson(){ $('lessonOverlay').classList.remove('show'); state.lessonOpen = false; }
+function openHistory(){
+  const h = STORE.history || [];
+  const body = $('historyBody');
+  if (!h.length) {
+    body.innerHTML = '<div class="history-empty">还没有做题记录，开始第一轮练习吧</div>';
+  } else {
+    body.innerHTML = h.map(r => {
+      const acc = r.total ? Math.round(r.right/r.total*100) : 0;
+      return `<div class="history-item">
+        <div class="hi-date"><div class="d">${r.date.slice(5)}</div><div class="t">${r.time||''}</div></div>
+        <div class="hi-info"><div class="u">${r.unit}</div><div class="m">${r.mode} · 正确率${acc}%</div></div>
+        <div class="hi-score">
+          <div class="n"><span style="color:var(--ok)">${r.right}</span> / <span style="color:var(--bad)">${r.wrong}</span></div>
+          <div class="l">对/错</div>
+        </div>
+      </div>`;
+    }).join('');
+  }
+  $('historyOverlay').classList.add('show');
+}
+function closeHistory(){ $('historyOverlay').classList.remove('show'); }
+function openAnswerSheet(){
+  let right=0, wrong=0, todo=0;
+  state.queue.forEach((w,i) => {
+    if (w._status === 'right') right++;
+    else if (w._status === 'wrong') wrong++;
+    else todo++;
+  });
+  $('asStats').innerHTML = `
+    <div class="as-stat ok"><div class="n">${right}</div><div class="l">答对</div></div>
+    <div class="as-stat bad"><div class="n">${wrong}</div><div class="l">答错</div></div>
+    <div class="as-stat todo"><div class="n">${todo}</div><div class="l">未答</div></div>
+  `;
+  $('asGrid').innerHTML = state.queue.map((w,i) => {
+    let cls = 'as-item';
+    if (i === state.idx) cls += ' current';
+    if (w._status === 'right') cls += ' right';
+    else if (w._status === 'wrong') cls += ' wrong';
+    return `<button class="${cls}" data-action="jump-to" data-idx="${i}">${i+1}</button>`;
+  }).join('');
+  $('asOverlay').classList.add('show');
+}
+function closeAnswerSheet(){ $('asOverlay').classList.remove('show'); }
+function jumpTo(idx){
+  if (idx < 0 || idx >= state.queue.length) return;
+  state.idx = idx;
+  state.flipped = false; state.options = null; state.answered = false;
+  state.picked = null; state.spellingValue = '';
+  closeAnswerSheet();
+  render();
+}
 function renderResult(){
+  // 保存历史记录
+  try {
+    const total = state.stats.right + state.stats.wrong;
+    if (total > 0) {
+      STORE.history.unshift({
+        date: todayKey(),
+        time: new Date().toLocaleTimeString('zh-CN', {hour:'2-digit',minute:'2-digit'}),
+        unit: state.wrongMode ? '错题复习' : ('Unit ' + state.unit),
+        mode: ({card:'单词卡',en2zh:'看词选义',zh2en:'看义选词',listen:'听音选词',spell:'拼写'})[state.mode] || state.mode,
+        total: total,
+        right: state.stats.right,
+        wrong: state.stats.wrong
+      });
+      if (STORE.history.length > 100) STORE.history = STORE.history.slice(0, 100);
+      persist();
+    }
+  } catch(e){}
   setHeader('本轮结束', '看看你的表现', true);
   const {right, wrong} = state.stats;
   const total = right + wrong;
@@ -1145,6 +1379,25 @@ document.addEventListener('click', e => {
   if(act === 'submit-spell'){ submitSpell(); return; }
   if(act === 'pick-unit'){ state.unit = +el.dataset.unit; state.wrongMode = false; state.view='modes'; render(); return; }
   if(act === 'enter-wrongbook'){ state.wrongMode = true; state.unit = null; state.view='modes'; render(); return; }
+  if(act === 'clear-wrongbook'){
+    if(confirm('确定要清空所有错题记录吗？')){
+      for(const id in STORE.cards){
+        if(STORE.cards[id] && STORE.cards[id].wrong > 0){
+          STORE.cards[id].wrong = 0;
+          STORE.cards[id].right = 0;
+        }
+      }
+      persist();
+      toast('错题本已清空');
+      render();
+    }
+    return;
+  }
+  if(act === 'open-history'){ openHistory(); return; }
+  if(act === 'close-history'){ closeHistory(); return; }
+  if(act === 'open-as'){ openAnswerSheet(); return; }
+  if(act === 'close-as'){ closeAnswerSheet(); return; }
+  if(act === 'jump-to'){ jumpTo(+el.dataset.idx); return; }
   if(act === 'open-lesson-direct'){ openLesson(); return; }
   if(act === 'pick-mode'){ startSession(el.dataset.mode); return; }
   if(act === 'answer'){
@@ -1159,6 +1412,8 @@ document.addEventListener('click', e => {
   }
 });
 $('lessonOverlay').addEventListener('click', e => { if(e.target === $('lessonOverlay')) closeLesson(); });
+$('asOverlay').addEventListener('click', e => { if(e.target === $('asOverlay')) closeAnswerSheet(); });
+$('historyOverlay').addEventListener('click', e => { if(e.target === $('historyOverlay')) closeHistory(); });
 function submitSpell(){
   if(state.answered) return;
   const inp = $('spellInput');
