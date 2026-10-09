@@ -1209,32 +1209,38 @@ function renderStudy(){
   if(swipeTarget) initSwipe(swipeTarget);
 }
 function initSwipe(el){
-  let startX = 0, startY = 0, startTime = 0;
+  let startX = 0, startY = 0, startTime = 0, pressed = false;
   const minDistance = 50, maxTime = 700;
-  el.addEventListener('touchstart', e => {
-    const t = e.touches[0];
-    startX = t.clientX; startY = t.clientY; startTime = Date.now();
-  }, {passive:true});
-  el.addEventListener('touchend', e => {
-    const t = e.changedTouches[0];
-    const distX = t.clientX - startX, distY = t.clientY - startY;
+
+  function onStart(x, y){
+    startX = x; startY = y; startTime = Date.now(); pressed = true;
+  }
+  function onEnd(x, y){
+    if(!pressed) return;
+    pressed = false;
+    const distX = x - startX, distY = y - startY;
     const elapsed = Date.now() - startTime;
     if(elapsed > maxTime || Math.abs(distX) < minDistance || Math.abs(distX) < Math.abs(distY)) return;
-
-    // 所有模式统一：左滑下一题，右滑上一题
-    if(distX < 0){
-      if(state.mode === 'card'){
-        // 单词卡：滑动直接切题，判分用按钮
-        nextCard();
-      } else {
-        if(!state.answered){ toast(state.mode === 'spell' ? '请先提交答案' : '请先作答'); return; }
-        nextCard();
-      }
-    } else {
+    if(distX < 0){ nextCard(); }
+    else {
       if(state.idx > 0) prevCard();
       else toast('已经是第一题了');
     }
+  }
+
+  // 触摸
+  el.addEventListener('touchstart', e => {
+    const t = e.touches[0];
+    onStart(t.clientX, t.clientY);
   }, {passive:true});
+  el.addEventListener('touchend', e => {
+    const t = e.changedTouches[0];
+    onEnd(t.clientX, t.clientY);
+  }, {passive:true});
+
+  // 鼠标（电脑上测试用）
+  el.addEventListener('mousedown', e => onStart(e.clientX, e.clientY));
+  el.addEventListener('mouseup', e => onEnd(e.clientX, e.clientY));
 }
 function openLesson(){
   const key = `${state.grade}${state.sem}`;
