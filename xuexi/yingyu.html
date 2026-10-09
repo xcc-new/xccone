@@ -531,6 +531,19 @@ function buildAudioMap() {
   return map;
 }
 const AUDIO_MAP = buildAudioMap();
+function buildLessonAudioMap() {
+  const map = {};
+  const key = '5上';
+  const lessons = LESSON_DATA[key] || {};
+  for (const u in lessons) {
+    lessons[u].forEach((line, idx) => {
+      const num = String(idx + 1).padStart(2, '0');
+      map[line[1].trim().toLowerCase()] = AUDIO_BASE + 'lessons/Unit' + u + '/' + num + '.mp3';
+    });
+  }
+  return map;
+}
+const LESSON_AUDIO_MAP = buildLessonAudioMap();
 
 /* =========================================================
    状态与存储
@@ -617,19 +630,17 @@ function speak(text, rate = 0.82) {
     try { speechSynthesis.cancel(); } catch(e){}
   }
 
-  // 方案 0：本地 MP3（仅对词库里的单词精确命中，课文长句走在线 TTS）
+  // 方案 0：本地 MP3（单词优先，其次课文句子）
   const key = String(text).trim().toLowerCase();
-  const localPath = AUDIO_MAP[key];
+  const localPath = AUDIO_MAP[key] || LESSON_AUDIO_MAP[key];
   if (localPath) {
     tryLocalAudio(localPath, () => {
-      // 本地 MP3 加载失败（文件缺失/路径不对），降级到在线
       console.warn('本地 MP3 加载失败，降级到在线 TTS:', localPath);
       speakOnline(text, rate);
     });
     return;
   }
 
-  // 非单词（课文句子等）直接走在线 TTS
   speakOnline(text, rate);
 }
 
