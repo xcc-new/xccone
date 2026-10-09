@@ -216,6 +216,30 @@ main{flex:1;padding:4px 16px 40px}
 .empty{text-align:center;padding:50px 20px;color:var(--muted);font-size:14px}
 @keyframes pop{0%{transform:scale(.9);opacity:0}100%{transform:scale(1);opacity:1}}
 .fade-in{animation:pop .3s ease}
+.wrongbook-card{
+  display:flex;align-items:center;gap:13px;width:100%;border:none;cursor:pointer;
+  background:linear-gradient(135deg,#fff5f5,#ffe3e3);border-radius:16px;padding:15px 16px;
+  box-shadow:0 6px 20px rgba(238,82,83,.12);transition:transform .15s;text-align:left;
+  font-family:inherit;margin-bottom:6px;
+}
+.wrongbook-card:active{transform:scale(.98)}
+.wb-emoji{
+  width:42px;height:42px;flex:0 0 42px;border-radius:13px;background:#fff;color:#ee5253;
+  display:flex;align-items:center;justify-content:center;font-size:22px;
+}
+.wb-info{flex:1;min-width:0}
+.wb-info .t{font-size:15px;font-weight:800;color:#c0392b}
+.wb-info .s{font-size:12px;color:#e07a6a;margin-top:3px}
+.lesson-entry{
+  display:flex;align-items:center;justify-content:center;gap:8px;width:100%;
+  background:#fff;border:2px dashed #c7d3e8;border-radius:16px;padding:15px;
+  cursor:pointer;font-family:inherit;font-size:14.5px;font-weight:700;color:var(--text);
+  box-shadow:var(--shadow);transition:transform .15s;
+}
+.lesson-entry:active{transform:scale(.98)}
+.study-swipe-hint{
+  text-align:center;font-size:11.5px;color:#b6c4dc;margin-top:14px;letter-spacing:.5px;
+}
 </style>
 </head>
 <body>
@@ -485,6 +509,13 @@ const LESSON_DATA = {
 function safeAudioName(word) {
   return String(word).replace(/[\\/:*?"<>|]/g, '_').trim();
 }
+function getAudioBase() {
+  const path = location.pathname;
+  const idx = path.lastIndexOf('/');
+  const dir = idx >= 0 ? path.substring(0, idx + 1) : '/';
+  return dir + 'audio/';
+}
+const AUDIO_BASE = getAudioBase();
 function buildAudioMap() {
   const map = {};
   for (const sem in WORD_DATA) {
@@ -493,7 +524,7 @@ function buildAudioMap() {
       units[u].forEach((item, idx) => {
         const en = item[0];
         const fname = String(idx + 1).padStart(2, '0') + '_' + safeAudioName(en) + '.mp3';
-        map[en.toLowerCase()] = './audio/Unit' + u + '/' + encodeURIComponent(fname);
+        map[en.toLowerCase()] = AUDIO_BASE + 'Unit' + u + '/' + encodeURIComponent(fname);
       });
     }
   }
@@ -526,7 +557,8 @@ const state = {
   view: 'home', grade: 5, sem: '上', unit: null, mode: null,
   queue: [], idx: 0, flipped: false, options: null, answered: false,
   picked: null, stats: {right:0, wrong:0}, wrongWords: [], extraDone: {},
-  spellingValue: '', lessonOpen: false
+  spellingValue: '', lessonOpen: false,
+  wrongMode: false
 };
 /* =========================================================
    工具函数
@@ -541,6 +573,34 @@ function todayKey(){ const d=new Date(); return `${d.getFullYear()}-${String(d.g
 function countWords(g){ let n=0; for(const s of ['上','下']) for(const u in (WORD_DATA[`${g}${s}`]||{})) n += WORD_DATA[`${g}${s}`][u].length; return n; }
 function unitTotal(g,s,u){ return (WORD_DATA[`${g}${s}`]?.[u]||[]).length; }
 function isMastered(id){ const c = STORE.cards[id]; return !!(c && c.interval >= 6); }
+function inWrongbook(id){
+  const c = STORE.cards[id];
+  return !!(c && c.wrong > 0 && (c.right||0) < 2);
+}
+function getWrongCount(){
+  let n = 0;
+  for (const sem in WORD_DATA) for (const u in WORD_DATA[sem])
+    WORD_DATA[sem][u].forEach(a => {
+      if (inWrongbook(cardId(state.grade, state.sem, u, a[0]))) n++;
+    });
+  return n;
+}
+function getWrongWords(){
+  const list = [];
+  for (const sem in WORD_DATA) for (const u in WORD_DATA[sem])
+    WORD_DATA[sem][u].forEach(a => {
+      const id = cardId(state.grade, state.sem, u, a[0]);
+      if (inWrongbook(id)) list.push({en:a[0], zh:a[1], ph:a[2]||'', id, unit:u});
+    });
+  return shuffle(list);
+}
+function prevCard(){
+  if (state.idx <= 0) return;
+  state.idx--;
+  state.flipped = false; state.options = null; state.answered = false;
+  state.picked = null; state.spellingValue = '';
+  render();
+}
 function esc(s){ return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 function vibrate(pattern){ if(navigator.vibrate) navigator.vibrate(pattern); }
 /* =========================================================
@@ -690,19 +750,20 @@ function recordDaily(){
    学习会话
    ========================================================= */
 function startSession(mode){
-  const words = getWords(state.grade, state.sem, state.unit);
-  if(!words.length){ toast('该单元暂无词汇'); return; }
+  let words;
+  if (state.wrongMode) {
+    words = getWrongWords();
+    if (!words.length) { toast('暂无错题，先去做几道题吧'); state.wrongMode = false; state.view = 'home'; render(); return; }
+  } else {
+    words = getWords(state.grade, state.sem, state.unit);
+    if (!words.length){ toast('该单元暂无词汇'); return; }
+  }
   const now = Date.now();
-  const withMeta = words.map(w => {
-    const id = cardId(state.grade, state.sem, state.unit, w.en);
-    const c = STORE.cards[id];
-    const due = c && c.due ? new Date(c.due).getTime() : 0;
-    return {...w, id, due};
-  });
+  const withMeta = words.map(w => ({...w, due: (STORE.cards[w.id] && STORE.cards[w.id].due) ? new Date(STORE.cards[w.id].due).getTime() : 0}));
   const dueList = withMeta.filter(w => w.due <= now).sort((a,b)=>a.due-b.due);
   const rest = shuffle(withMeta.filter(w => w.due > now));
   let queue = [...dueList, ...rest];
-  if(queue.length > 30) queue = queue.slice(0, 30);
+  if(queue.length > 50) queue = queue.slice(0, 50);
   state.queue = queue; state.idx = 0; state.mode = mode;
   state.stats = {right:0, wrong:0}; state.wrongWords = []; state.extraDone = {};
   state.flipped = false; state.options = null; state.answered = false;
@@ -734,8 +795,15 @@ function judge(quality){
   nextCard();
 }
 function makeOptions(word){
-  const all = getWords(state.grade, state.sem, state.unit);
-  const others = shuffle(all.filter(w => w.en !== word.en));
+  let pool;
+  if (state.wrongMode) {
+    pool = [];
+    for (const sem in WORD_DATA) for (const u in WORD_DATA[sem])
+      WORD_DATA[sem][u].forEach(a => pool.push({en:a[0], zh:a[1]}));
+  } else {
+    pool = getWords(state.grade, state.sem, state.unit);
+  }
+  const others = shuffle(pool.filter(w => w.en !== word.en));
   return shuffle([word, ...others.slice(0,3)]);
 }
 /* =========================================================
@@ -776,6 +844,20 @@ function renderUnits(){
       <h2>选择单元开始学习</h2>
       <p>6个单元 · 共 ${countWords(g)} 个单词</p>
     </div>
+    ${(() => {
+      const wc = getWrongCount();
+      return wc > 0 ? `
+        <button class="wrongbook-card fade-in" data-action="enter-wrongbook">
+          <div class="wb-emoji">📕</div>
+          <div class="wb-info">
+            <div class="t">错题本</div>
+            <div class="s">${wc} 个错题待巩固，点击开始针对性练习</div>
+          </div>
+          <div class="unit-arrow">›</div>
+        </button>
+      ` : '';
+    })()}
+    <div class="section-title">按单元学习</div>
     <div class="unit-list">
       ${Object.keys(units).map(u => {
         const total = unitTotal(g, state.sem, u);
@@ -801,9 +883,17 @@ function renderUnits(){
   `;
 }
 function renderModes(){
-  const key = `${state.grade}${state.sem}`;
-  const title = (UNIT_TITLES[key] || [])[state.unit-1] || `Unit ${state.unit}`;
-  setHeader(`Unit ${state.unit} · ${title}`, `五年级上册 · 选择训练模式`, true);
+  let title, sub;
+  if (state.wrongMode) {
+    title = '错题复习';
+    sub = `共 ${getWrongWords().length} 个错题 · 选择训练模式`;
+  } else {
+    const key = `${state.grade}${state.sem}`;
+    title = (UNIT_TITLES[key] || [])[state.unit-1] || `Unit ${state.unit}`;
+    title = `Unit ${state.unit} · ${title}`;
+    sub = '五年级上册 · 选择训练模式';
+  }
+  setHeader(title, sub, true);
   const modes = [
     {k:'card',   e:'🃏', t:'单词卡翻转',   s:'看英文想中文，翻卡自评，支持左右滑动'},
     {k:'en2zh',  e:'🔤', t:'看词选义',     s:'看英文，选出正确中文'},
@@ -811,6 +901,7 @@ function renderModes(){
     {k:'listen', e:'🎧', t:'听音选词',     s:'听发音，选出对应单词'},
     {k:'spell',  e:'✍️', t:'拼写练习',     s:'看中文，手动拼写单词'}
   ];
+  const showLesson = !state.wrongMode && !!(LESSON_DATA[`${state.grade}${state.sem}`]?.[state.unit]);
   main.innerHTML = `
     <div class="mode-list">
       ${modes.map(m => `
@@ -824,13 +915,20 @@ function renderModes(){
         </button>
       `).join('')}
     </div>
+    ${showLesson ? `
+      <div style="margin-top:14px">
+        <button class="lesson-entry" data-action="open-lesson-direct">
+          <span>📖</span> 查看课文原文
+        </button>
+      </div>
+    ` : ''}
   `;
 }
 function renderStudy(){
   const w = currentWord();
   if(!w){ state.view='result'; render(); return; }
   const modeNames = {card:'单词卡', en2zh:'看词选义', zh2en:'看义选词', listen:'听音选词', spell:'拼写练习'};
-  setHeader(modeNames[state.mode] || '学习中', `五年级上册 · Unit ${state.unit}`, true);
+  setHeader(modeNames[state.mode] || '学习中', state.wrongMode ? '五年级上册 · 错题复习' : `五年级上册 · Unit ${state.unit}`, true);
   const total = state.queue.length;
   const pct = Math.round((state.idx / total) * 100);
   const key = `${state.grade}${state.sem}`;
@@ -916,7 +1014,10 @@ function renderStudy(){
       <div class="progress-wrap"><i style="width:${pct}%"></i></div>
       <div class="study-count">${state.idx+1}/${total}</div>
     </div>
-    ${body}
+    <div class="study-wrap">
+      ${body}
+      ${state.mode !== 'card' ? '<div class="study-swipe-hint">⬅ 左滑下一题 · 右滑上一题 ➡</div>' : ''}
+    </div>
   `;
   if(state.mode === 'spell' && !state.answered){
     const inp = $('spellInput');
@@ -926,14 +1027,12 @@ function renderStudy(){
       inp.addEventListener('input', e => { state.spellingValue = e.target.value; });
     }
   }
-  if(state.mode === 'card'){
-    const fc = main.querySelector('.flashcard');
-    if(fc) initSwipe(fc);
-  }
+  const swipeTarget = state.mode === 'card' ? main.querySelector('.flashcard') : main.querySelector('.study-wrap');
+  if(swipeTarget) initSwipe(swipeTarget);
 }
 function initSwipe(el){
   let startX = 0, startY = 0, startTime = 0;
-  const minDistance = 40, maxTime = 600;
+  const minDistance = 50, maxTime = 700;
   el.addEventListener('touchstart', e => {
     const t = e.touches[0];
     startX = t.clientX; startY = t.clientY; startTime = Date.now();
@@ -942,9 +1041,21 @@ function initSwipe(el){
     const t = e.changedTouches[0];
     const distX = t.clientX - startX, distY = t.clientY - startY;
     const elapsed = Date.now() - startTime;
-    if(elapsed <= maxTime && Math.abs(distX) >= minDistance && Math.abs(distX) >= Math.abs(distY)){
-      if(distX < 0){ if(state.mode === 'card' && !state.answered){ state.flipped ? judge(1) : toast('请先翻转卡片查看答案'); } }
-      else { if(state.mode === 'card' && !state.answered){ state.flipped ? judge(4) : toast('请先翻转卡片查看答案'); } }
+    if(elapsed > maxTime || Math.abs(distX) < minDistance || Math.abs(distX) < Math.abs(distY)) return;
+
+    if(state.mode === 'card'){
+      // 单词卡：左滑判错，右滑判对
+      if(distX < 0){ if(state.flipped) judge(1); else toast('请先翻转卡片查看答案'); }
+      else { if(state.flipped) judge(4); else toast('请先翻转卡片查看答案'); }
+    } else {
+      // 其他模式：左滑下一题，右滑上一题
+      if(distX < 0){
+        if(!state.answered){ toast(state.mode === 'spell' ? '请先提交答案' : '请先作答'); return; }
+        nextCard();
+      } else {
+        if(state.idx > 0) prevCard();
+        else toast('已经是第一题了');
+      }
     }
   }, {passive:true});
 }
@@ -1021,7 +1132,9 @@ document.addEventListener('click', e => {
   if(act === 'back-modes'){ state.view='modes'; render(); return; }
   if(act === 'restart'){ startSession(state.mode); return; }
   if(act === 'submit-spell'){ submitSpell(); return; }
-  if(act === 'pick-unit'){ state.unit = +el.dataset.unit; state.view='modes'; render(); return; }
+  if(act === 'pick-unit'){ state.unit = +el.dataset.unit; state.wrongMode = false; state.view='modes'; render(); return; }
+  if(act === 'enter-wrongbook'){ state.wrongMode = true; state.unit = null; state.view='modes'; render(); return; }
+  if(act === 'open-lesson-direct'){ openLesson(); return; }
   if(act === 'pick-mode'){ startSession(el.dataset.mode); return; }
   if(act === 'answer'){
     if(state.answered) return;
@@ -1053,14 +1166,18 @@ function submitSpell(){
 }
 $('backBtn').addEventListener('click', () => {
   if(state.view === 'study' || state.view === 'result'){ state.view = 'modes'; }
-  else if(state.view === 'modes'){ state.view = 'units'; }
+  else if(state.view === 'modes'){
+    state.view = 'units';
+    state.wrongMode = false;
+    state.unit = null;
+  }
   render();
 });
 $('homeBtn').addEventListener('click', () => {
   if(state.view === 'home' || state.view === 'units') return;
   if(window._currentAudio) { try { window._currentAudio.pause(); } catch(e){} window._currentAudio = null; }
   if('speechSynthesis' in window) try { speechSynthesis.cancel(); } catch(e){}
-  closeLesson(); state.view = 'home'; render();
+  closeLesson(); state.view = 'home'; state.wrongMode = false; state.unit = null; render();
 });
 document.addEventListener('keydown', e => {
   if(state.lessonOpen) return;
