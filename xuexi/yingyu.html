@@ -495,7 +495,7 @@ const LESSON_DATA = {
       ["Mr Liu", "Please don't worry! It'll be a fine day tomorrow.", "请不要担心！明天会是个好天气。"],
       ["Mike", "Is there any bad weather here in summer?", "这里夏天有恶劣天气吗？"],
       ["Mr Liu", "Yes. There is heavy rain. Sometimes there are floods.", "是的。有大雨。有时候会有洪水。"],
-      ["Weather Reporter", "Good morning! This is the world weather report. In London, there will be heavy rain today. Tomorrow, it will be cloudy. You can go outside and enjoy the cool weather! ...", "早上好！这是世界天气预报。在伦敦，今天将有大雨。明天，天气多云。你可以出去享受凉爽的天气！..."]
+      ["Weather Reporter", "Good morning! This is the world weather report. In London, there will be heavy rain today. Tomorrow, it will be cloudy. You can go outside and enjoy the cool weather!", "早上好！这是世界天气预报。在伦敦，今天将有大雨。明天，天气多云。你可以出去享受凉爽的天气！"]
     ]
   }
 };
@@ -503,7 +503,7 @@ const LESSON_DATA = {
 /* =========================================================
    状态与存储
    ========================================================= */
-const STORE_KEY = 'pep_words_v4';
+const STORE_KEY = 'pep_words_v5';
 let STORE = (() => {
   try {
     const raw = localStorage.getItem(STORE_KEY);
@@ -546,37 +546,85 @@ function esc(s){ return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&l
 function vibrate(pattern){ if(navigator.vibrate) navigator.vibrate(pattern); }
 
 /* =========================================================
-   语音朗读（使用有道词典在线发音接口）
+   语音朗读（多路降级：百度 TTS → 有道 TTS → 系统 TTS）
    ========================================================= */
 function speak(text, rate = 0.82) {
   if (!text) return;
 
-  // 1. 停止当前正在播放的音频
+  // 停止当前正在播放的内容
   if (window._currentAudio) {
-    window._currentAudio.pause();
+    try { window._currentAudio.pause(); } catch(e){}
     window._currentAudio = null;
   }
+  if ('speechSynthesis' in window) {
+    try { speechSynthesis.cancel(); } catch(e){}
+  }
 
-  // 2. 使用有道在线发音接口（type=2 为美音）
-  const url = `https://dict.youdao.com/dictvoice?audio=${encodeURIComponent(text)}&type=2`;
-  
-  // 3. 创建并播放音频
-  const audio = new Audio(url);
+  // 方案 1：百度翻译 TTS（国内可用性最好）
+  const baiduUrl = `https://fanyi.baidu.com/gettts?lan=en&text=${encodeURIComponent(text)}&spd=3&source=web`;
+
+  tryAudio(baiduUrl, rate, () => {
+    // 方案 2：有道 TTS
+    const youdaoUrl = `https://dict.youdao.com/dictvoice?audio=${encodeURIComponent(text)}&type=2`;
+    tryAudio(youdaoUrl, rate, () => {
+      // 方案 3：系统 TTS 兜底
+      console.warn('所有在线 TTS 均失败，降级到系统语音');
+      fallbackToSystem(text, rate);
+    });
+  });
+}
+
+/* 尝试播放指定 URL 的音频，失败则调用 onFail */
+function tryAudio(url, rate, onFail) {
+  const audio = new Audio();
   audio.volume = 1;
-  audio.playbackRate = rate; // 0.82 适合小学生听清
-  
-  // 记录当前音频对象，方便下一次点击打断
+  audio.playbackRate = rate;
+  audio.crossOrigin = 'anonymous';
+
+  let failed = false;
+  const fail = () => {
+    if (failed) return;
+    failed = true;
+    try { audio.pause(); } catch(e){}
+    onFail();
+  };
+
+  // 超时保护：4 秒还没开始播放就认为失败
+  const timer = setTimeout(fail, 4000);
+  audio.oncanplay = () => clearTimeout(timer);
+  audio.onerror = () => { clearTimeout(timer); fail(); };
+
+  audio.src = url;
   window._currentAudio = audio;
-  
-  // 4. 播放，如果失败则给出提示
-  audio.play().catch(e => {
-    console.error('在线音频播放失败:', e);
-    if (e.name === 'NotAllowedError') {
-      toast('浏览器拦截了播放，请点击页面任意位置后再试');
-    } else {
-      toast('网络不佳，发音加载失败');
+
+  audio.play().then(() => {
+    clearTimeout(timer);
+  }).catch(e => {
+    clearTimeout(timer);
+    console.warn('音频 play() 失败:', e.name, e.message);
+    if (e.name !== 'AbortError') {
+      fail();
     }
   });
+}
+
+/* 系统 TTS 兜底 */
+function fallbackToSystem(text, rate) {
+  if (!('speechSynthesis' in window)) {
+    toast('无法播放发音，请检查网络');
+    return;
+  }
+  const u = new SpeechSynthesisUtterance(text);
+  u.lang = 'en-US';
+  u.rate = rate;
+  u.volume = 1;
+  const voices = speechSynthesis.getVoices();
+  const voice =
+    voices.find(v => /en-US/i.test(v.lang) && /Google|Samantha|Aria/i.test(v.name)) ||
+    voices.find(v => /en-US/i.test(v.lang)) ||
+    voices.find(v => /^en/i.test(v.lang));
+  if (voice) u.voice = voice;
+  speechSynthesis.speak(u);
 }
 
 /* =========================================================
@@ -1016,7 +1064,8 @@ $('backBtn').addEventListener('click', () => {
 
 $('homeBtn').addEventListener('click', () => {
   if(state.view === 'home' || state.view === 'units') return;
-  if(window._currentAudio) { window._currentAudio.pause(); window._currentAudio = null; }
+  if(window._currentAudio) { try { window._currentAudio.pause(); } catch(e){} window._currentAudio = null; }
+  if('speechSynthesis' in window) try { speechSynthesis.cancel(); } catch(e){}
   closeLesson(); state.view = 'home'; render();
 });
 
