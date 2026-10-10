@@ -335,6 +335,7 @@ main{flex:1;padding:4px 16px 40px}
 .as-item:active{transform:scale(.92)}
 .as-item.right{background:var(--ok);color:#fff}
 .as-item.wrong{background:var(--bad);color:#fff}
+.as-item.todo{background:#f39c12;color:#fff}
 .as-item.current{outline:3px solid var(--primary);outline-offset:1px}
 .as-legend{
   display:flex;gap:16px;justify-content:center;margin-top:16px;
@@ -380,7 +381,7 @@ main{flex:1;padding:4px 16px 40px}
     <div class="as-legend">
       <span><i class="as-dot" style="background:#26c281"></i>答对</span>
       <span><i class="as-dot" style="background:#ee5253"></i>答错</span>
-      <span><i class="as-dot" style="background:#eef2fa"></i>未答</span>
+      <span><i class="as-dot" style="background:#f39c12"></i>未答</span>
       <span><i class="as-dot" style="background:#4f7cff"></i>当前</span>
     </div>
   </div>
@@ -1028,7 +1029,10 @@ function getWrongWords(){
   for (const sem in WORD_DATA) for (const u in WORD_DATA[sem])
     WORD_DATA[sem][u].forEach(a => {
       const id = cardId(state.grade, state.sem, u, a[0]);
-      if (inWrongbook(id)) list.push({en:a[0], zh:a[1], ph:a[2]||'', id, unit:u});
+      if (inWrongbook(id)) {
+        const card = STORE.cards[id];
+        list.push({en:a[0], zh:a[1], ph:a[2]||'', id, unit:u, lastType: card ? (card.lastType||'wrong') : 'wrong'});
+      }
     });
   return shuffle(list);
 }
@@ -1155,17 +1159,19 @@ function fallbackToSystem(text, rate) {
 /* =========================================================
    SM-2 间隔重复算法
    ========================================================= */
-function updateCardSM2(id, quality){
+function updateCardSM2(id, quality, type){
   const c = STORE.cards[id] || {interval:0, repetition:0, efactor:2.5, due:null, right:0, wrong:0};
   if(quality < 3){
     c.repetition = 0; c.interval = 0; c.wrong = (c.wrong||0)+1;
     c.due = new Date(Date.now() + 5*60*1000).toISOString();
+    if(type) c.lastType = type;
   } else {
     if(c.repetition === 0) c.interval = 1;
     else if(c.repetition === 1) c.interval = 6;
     else c.interval = Math.max(1, Math.round(c.interval * c.efactor));
     c.repetition = (c.repetition||0)+1; c.right = (c.right||0)+1;
     const d = new Date(); d.setDate(d.getDate() + c.interval); c.due = d.toISOString();
+    c.lastType = 'right';
   }
   c.efactor = Math.max(1.3, (c.efactor||2.5) + (0.1 - (5-quality)*(0.08+(5-quality)*0.02)));
   c.lastQuality = quality; c.updatedAt = Date.now();
@@ -1187,7 +1193,24 @@ function recordDaily(){
    ========================================================= */
 function startSession(mode){
   let words;
-  if (state.wrongMode) {
+  if (mode === 'sentence') {
+    // 从课文取整句
+    const book = LESSON_BOOK[state.unit];
+    if(!book){ toast('本单元暂无课文'); return; }
+    words = [];
+    ['A_talk','A_learn','B_talk','B_learn'].forEach(part => {
+      const lines = book[part] || [];
+      lines.forEach(l => {
+        words.push({
+          en: l[1], zh: l[2], who: l[0], ph: '',
+          id: 'sentence::' + l[1].trim().toLowerCase()
+        });
+      });
+    });
+    if(!words.length){ toast('本单元暂无课文句子'); return; }
+    words = shuffle(words);
+    if(words.length > 30) words = words.slice(0, 30);
+  } else if (state.wrongMode) {
     words = getWrongWords();
     if (!words.length) { toast('暂无错题，先去做几道题吧'); state.wrongMode = false; state.view = 'home'; render(); return; }
   } else {
@@ -1196,14 +1219,19 @@ function startSession(mode){
     }));
     if (!words.length){ toast('该单元暂无词汇'); return; }
   }
-  const now = Date.now();
-  const withMeta = words.map(w => ({...w, due: (STORE.cards[w.id] && STORE.cards[w.id].due) ? new Date(STORE.cards[w.id].due).getTime() : 0}));
-  const dueList = withMeta.filter(w => w.due <= now).sort((a,b)=>a.due-b.due);
-  const rest = shuffle(withMeta.filter(w => w.due > now));
-  let queue = [...dueList, ...rest];
-  if(queue.length > 50) queue = queue.slice(0, 50);
+  let queue;
+  if(mode === 'sentence'){
+    queue = words;
+  } else {
+    const now = Date.now();
+    const withMeta = words.map(w => ({...w, due: (STORE.cards[w.id] && STORE.cards[w.id].due) ? new Date(STORE.cards[w.id].due).getTime() : 0}));
+    const dueList = withMeta.filter(w => w.due <= now).sort((a,b)=>a.due-b.due);
+    const rest = shuffle(withMeta.filter(w => w.due > now));
+    queue = [...dueList, ...rest];
+    if(queue.length > 50) queue = queue.slice(0, 50);
+  }
   state.queue = queue.map(w => ({...w, _status: null})); state.idx = 0; state.mode = mode;
-  state.stats = {right:0, wrong:0}; state.wrongWords = []; state.extraDone = {};
+  state.stats = {right:0, wrong:0, todo:0}; state.wrongWords = []; state.extraDone = {};
   state.flipped = false; state.options = null; state.answered = false;
   state.picked = null; state.spellingValue = ''; state.view = 'study'; state.lessonOpen = false;
   render();
@@ -1211,6 +1239,14 @@ function startSession(mode){
 }
 function currentWord(){ return state.queue[state.idx]; }
 function nextCard(){
+  // 如果当前题还没作答（被跳过），标记为"未答"，加入错题本但不算答错
+  const cur = currentWord();
+  if(cur && !cur._status){
+    cur._status = 'todo';
+    state.stats.todo++;
+    if(!state.wrongWords.find(x=>x.en===cur.en)) state.wrongWords.push(cur);
+    try{ updateCardSM2(cur.id, 1); }catch(e){}
+  }
   state.flipped = false; state.options = null; state.answered = false;
   state.picked = null; state.spellingValue = ''; state.idx++;
   if(state.idx >= state.queue.length){ state.view = 'result'; render(); return; }
@@ -1222,7 +1258,7 @@ function judge(quality){
   if(!w) return;
   const correct = quality >= 3;
   w._status = correct ? 'right' : 'wrong';
-  updateCardSM2(w.id, quality);
+  updateCardSM2(w.id, quality, correct ? null : 'wrong');
   recordDaily();
   if(correct){ state.stats.right++; vibrate(30); }
   else {
@@ -1358,21 +1394,44 @@ function renderModes(){
     return `上次 ${acc}%（${h.right}对${h.wrong}错）`;
   }
   const modes = [
-    {k:'card',   e:'🃏', t:'单词卡翻转',   s:'看英文想中文，翻卡自评'},
-    {k:'en2zh',  e:'🔤', t:'看词选义',     s:'看英文，选出正确中文'},
-    {k:'zh2en',  e:'🀄', t:'看义选词',     s:'看中文，选出正确英文'},
-    {k:'listen', e:'🎧', t:'听音选词',     s:'听发音，选出对应单词'},
-    {k:'spell',  e:'✍️', t:'拼写练习',     s:'看中文，手动拼写单词'}
+    {k:'card',     e:'🃏', t:'单词卡翻转',   s:'看英文想中文，翻卡自评'},
+    {k:'en2zh',    e:'🔤', t:'看词选义',     s:'看英文，选出正确中文'},
+    {k:'zh2en',    e:'🀄', t:'看义选词',     s:'看中文，选出正确英文'},
+    {k:'listen',   e:'🎧', t:'听音选词',     s:'听发音，选出对应单词'},
+    {k:'spell',    e:'✍️', t:'单词拼写',     s:'看中文，手动拼写单词'},
+    {k:'sentence', e:'📝', t:'课文整句拼写', s:'看课文中文，拼写整句英文'}
   ];
   const showLesson = !state.wrongMode && !!(LESSON_DATA[`${state.grade}${state.sem}`]?.[state.unit]);
   const wrongTotal = state.wrongMode ? getWrongWords().length : 0;
   main.innerHTML = `
     ${state.wrongMode ? `
       <div style="background:linear-gradient(135deg,#fff5f5,#ffe3e3);border-radius:16px;padding:16px;margin-bottom:12px;box-shadow:var(--shadow)">
-        <div style="font-size:15px;font-weight:800;color:#c0392b">📕 共 ${wrongTotal} 个错题待巩固</div>
+        <div style="font-size:15px;font-weight:800;color:#c0392b">📕 共 ${wrongTotal} 个待巩固</div>
         <div style="font-size:12px;color:#b06050;margin-top:6px;line-height:1.5">选择任意模式开始练习，连续答对 2 次后自动移出错题本</div>
         <button class="btn btn-ghost" data-action="clear-wrongbook" style="margin-top:10px;padding:7px 14px;font-size:12px;color:var(--muted)">🗑 清空错题本</button>
       </div>
+      ${(() => {
+        const all = getWrongWords();
+        const wl = all.filter(x => x.lastType === 'wrong');
+        const tl = all.filter(x => x.lastType === 'todo');
+        const renderItem = (w, color, tag) => `
+          <div class="wrong-item" style="background:#fff">
+            <div style="flex:1;min-width:0">
+              <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+                <span style="font-size:10px;font-weight:800;color:#fff;background:${color};padding:1px 7px;border-radius:6px">${tag}</span>
+                <span style="font-size:13px;font-weight:700">Unit ${w.unit} · ${esc(w.en)}</span>
+              </div>
+              <div style="font-size:12px;color:var(--muted);margin-top:2px">${esc(w.zh)}</div>
+            </div>
+            <button class="spk" data-action="speak" data-word="${esc(w.en)}">🔊</button>
+          </div>`;
+        return `
+        <div style="background:#fff;border-radius:16px;padding:12px 16px;margin-bottom:12px;box-shadow:var(--shadow);max-height:260px;overflow-y:auto">
+          <div style="font-size:13px;font-weight:800;margin-bottom:8px">错题明细（答错 ${wl.length} · 未答 ${tl.length}）</div>
+          ${wl.map(w => renderItem(w, '#ee5253', '答错')).join('')}
+          ${tl.map(w => renderItem(w, '#f39c12', '未答')).join('')}
+        </div>`;
+      })()}
     ` : `
       <div style="background:#fff;border-radius:14px;padding:11px 15px;margin-bottom:12px;box-shadow:var(--shadow);display:flex;align-items:center;gap:10px">
         <span style="font-size:13px">本单元错题：<b style="color:var(--bad)">${unitWrongCount}</b> 个</span>
@@ -1413,7 +1472,7 @@ function renderModes(){
 function renderStudy(){
   const w = currentWord();
   if(!w){ state.view='result'; render(); return; }
-  const modeNames = {card:'单词卡', en2zh:'看词选义', zh2en:'看义选词', listen:'听音选词', spell:'拼写练习'};
+  const modeNames = {card:'单词卡', en2zh:'看词选义', zh2en:'看义选词', listen:'听音选词', spell:'单词拼写', sentence:'课文整句拼写'};
   setHeader(modeNames[state.mode] || '学习中', state.wrongMode ? '五年级上册 · 错题复习' : `五年级上册 · Unit ${state.unit}`, true);
   const total = state.queue.length;
   const pct = Math.round((state.idx / total) * 100);
@@ -1495,6 +1554,29 @@ function renderStudy(){
       </div>
     `;
   }
+  else if(state.mode === 'sentence'){
+    // w 是 {en: 英文整句, zh: 中文提示, who: 说话人, ph: ''}
+    const ansCls = state.answered ? (state.picked === 'right' ? 'correct' : 'wrong') : '';
+    body = `
+      <div class="spell-box" style="text-align:left">
+        <div style="font-size:11px;font-weight:800;color:var(--primary);background:var(--primary-l);display:inline-block;padding:3px 10px;border-radius:8px;margin-bottom:10px">${esc(w.who || '')}</div>
+        <div class="spell-zh" style="text-align:left;font-size:22px;line-height:1.5">${esc(w.zh)}</div>
+        <input class="spell-input ${ansCls}" id="spellInput" type="text"
+               autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
+               placeholder="输入英文整句" value="${esc(state.spellingValue)}" ${state.answered?'disabled':''}
+               style="text-align:left;font-size:16px;font-weight:500;letter-spacing:0">
+        <div class="spell-answer" style="text-align:left">${state.answered ? `正确答案：<b style="display:block;line-height:1.5;margin-top:6px">${esc(w.en)}</b>` : ''}</div>
+        <div style="margin-top:18px">
+          ${state.answered
+            ? `<button class="btn btn-primary" data-action="next">继续 →</button>`
+            : `<button class="btn btn-primary" data-action="submit-sentence">确认</button>`}
+        </div>
+      </div>
+      <div style="text-align:center">
+        <button class="btn btn-ghost" data-action="speak" data-word="${esc(w.en)}" style="padding:11px 22px;font-size:14px">🔊 听整句发音</button>
+      </div>
+    `;
+  }
   main.innerHTML = `
     <div class="study-top">
       <div class="progress-wrap"><i style="width:${pct}%"></i></div>
@@ -1506,11 +1588,12 @@ function renderStudy(){
       ${state.mode !== 'card' ? '<div class="study-swipe-hint">⬅ 左滑下一题 · 右滑上一题 ➡</div>' : ''}
     </div>
   `;
-  if(state.mode === 'spell' && !state.answered){
+  if((state.mode === 'spell' || state.mode === 'sentence') && !state.answered){
     const inp = $('spellInput');
     if(inp){
       inp.focus();
-      inp.addEventListener('keydown', e => { if(e.key === 'Enter'){ e.preventDefault(); submitSpell(); } });
+      const submitFn = state.mode === 'sentence' ? submitSentence : submitSpell;
+      inp.addEventListener('keydown', e => { if(e.key === 'Enter'){ e.preventDefault(); submitFn(); } });
       inp.addEventListener('input', e => { state.spellingValue = e.target.value; });
     }
   }
@@ -1598,13 +1681,15 @@ function openHistory(){
     body.innerHTML = '<div class="history-empty">还没有做题记录，开始第一轮练习吧</div>';
   } else {
     body.innerHTML = h.map(r => {
-      const acc = r.total ? Math.round(r.right/r.total*100) : 0;
+      const ans = (r.right||0) + (r.wrong||0);
+      const acc = ans > 0 ? Math.round(r.right/ans*100) : 0;
+      const todo = r.todo || 0;
       return `<div class="history-item">
         <div class="hi-date"><div class="d">${r.date.slice(5)}</div><div class="t">${r.time||''}</div></div>
         <div class="hi-info"><div class="u">${r.unit}</div><div class="m">${r.mode} · 正确率${acc}%</div></div>
         <div class="hi-score">
-          <div class="n"><span style="color:var(--ok)">${r.right}</span> / <span style="color:var(--bad)">${r.wrong}</span></div>
-          <div class="l">对/错</div>
+          <div class="n"><span style="color:var(--ok)">${r.right||0}</span>/<span style="color:var(--bad)">${r.wrong||0}</span>${todo>0?`/<span style="color:#f39c12">${todo}</span>`:''}</div>
+          <div class="l">对/错${todo>0?'/未':''}</div>
         </div>
       </div>`;
     }).join('');
@@ -1629,6 +1714,7 @@ function openAnswerSheet(){
     if (i === state.idx) cls += ' current';
     if (w._status === 'right') cls += ' right';
     else if (w._status === 'wrong') cls += ' wrong';
+    else if (w._status === 'todo') cls += ' todo';
     return `<button class="${cls}" data-action="jump-to" data-idx="${i}">${i+1}</button>`;
   }).join('');
   $('asOverlay').classList.add('show');
@@ -1643,52 +1729,77 @@ function jumpTo(idx){
   render();
 }
 function renderResult(){
+  // 统一标记所有未作答的题为"未答"
+  state.queue.forEach(w => {
+    if(!w._status){
+      w._status = 'todo';
+      state.stats.todo++;
+      if(!state.wrongWords.find(x=>x.en===w.en)) state.wrongWords.push(w);
+      try{ updateCardSM2(w.id, 1, 'todo'); }catch(e){}
+    }
+  });
   // 保存历史记录
   try {
-    const total = state.stats.right + state.stats.wrong;
+    const total = state.queue.length;
     if (total > 0) {
       STORE.history.unshift({
         date: todayKey(),
         time: new Date().toLocaleTimeString('zh-CN', {hour:'2-digit',minute:'2-digit'}),
         unit: state.wrongMode ? '错题复习' : ('Unit ' + state.unit),
-        mode: ({card:'单词卡',en2zh:'看词选义',zh2en:'看义选词',listen:'听音选词',spell:'拼写'})[state.mode] || state.mode,
+        mode: ({card:'单词卡',en2zh:'看词选义',zh2en:'看义选词',listen:'听音选词',spell:'单词拼写',sentence:'课文整句拼写'})[state.mode] || state.mode,
         total: total,
         right: state.stats.right,
-        wrong: state.stats.wrong
+        wrong: state.stats.wrong,
+        todo: state.stats.todo || 0
       });
       if (STORE.history.length > 100) STORE.history = STORE.history.slice(0, 100);
       persist();
     }
   } catch(e){}
   setHeader('本轮结束', '看看你的表现', true);
-  const {right, wrong} = state.stats;
-  const total = right + wrong;
-  const acc = total ? Math.round(right/total*100) : 0;
+  const {right, wrong, todo} = state.stats;
+  const total = state.queue.length;
+  const answered = right + wrong;
+  const acc = answered > 0 ? Math.round(right/answered*100) : 0;
   let emoji = '🌱', msg = '继续加油！';
-  if(acc >= 90){ emoji = '🏆'; msg = '太棒了，几乎全对！'; }
+  if(total > 0 && right === total){ emoji = '🏆'; msg = '太棒了，全部正确！'; }
   else if(acc >= 75){ emoji = '🎉'; msg = '做得很好，再练一次更稳！'; }
   else if(acc >= 60){ emoji = '💪'; msg = '不错，多复习几遍就记住啦！'; }
   main.innerHTML = `
     <div class="result-wrap fade-in">
       <div class="result-emoji">${emoji}</div>
       <h2>${msg}</h2>
-      <div class="sub">本轮共练习 ${total} 张卡片</div>
-      <div class="result-stats">
+      <div class="sub">本轮共 ${total} 张 · 答对 ${right} · 答错 ${wrong}${todo > 0 ? ' · 未答 '+todo : ''}</div>
+      <div class="result-stats" style="grid-template-columns:repeat(4,1fr)">
         <div class="rstat acc"><div class="n">${acc}%</div><div class="l">正确率</div></div>
         <div class="rstat ok"><div class="n">${right}</div><div class="l">答对</div></div>
         <div class="rstat bad"><div class="n">${wrong}</div><div class="l">答错</div></div>
+        <div class="rstat" style="background:#fff8e6"><div class="n" style="color:#f39c12">${todo}</div><div class="l">未答</div></div>
       </div>
-      ${state.wrongWords.length ? `
-        <div class="section-title" style="text-align:left;margin-left:4px">需要加强的单词</div>
-        <div class="wrong-list">
-          ${state.wrongWords.map(w => `
+      ${state.wrongWords.length ? (() => {
+        const wrongList = state.wrongWords.filter(w => w._status === 'wrong');
+        const todoList = state.wrongWords.filter(w => w._status === 'todo');
+        const renderItem = (w, color, tag) => `
             <div class="wrong-item">
-              <div><div class="en">${esc(w.en)}</div><div class="zh">${esc(w.zh)}</div></div>
+              <div style="flex:1;min-width:0">
+                <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+                  <span style="font-size:10px;font-weight:800;color:#fff;background:${color};padding:1px 7px;border-radius:6px;flex:0 0 auto">${tag}</span>
+                  <span class="en" style="font-size:15px;font-weight:700">${esc(w.en)}</span>
+                </div>
+                <div class="zh" style="font-size:13px;color:var(--muted);margin-top:3px">${esc(w.zh)}</div>
+              </div>
               <button class="spk" data-action="speak" data-word="${esc(w.en)}">🔊</button>
-            </div>
-          `).join('')}
-        </div>
-      ` : ''}
+            </div>`;
+        return `
+          <div class="section-title" style="text-align:left;margin-left:4px">
+            需要加强的单词（答错 ${wrongList.length} · 未答 ${todoList.length}）
+          </div>
+          <div class="wrong-list">
+            ${wrongList.map(w => renderItem(w, '#ee5253', '答错')).join('')}
+            ${todoList.map(w => renderItem(w, '#f39c12', '未答')).join('')}
+          </div>
+        `;
+      })() : ''}
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:11px;margin-top:6px">
         <button class="btn btn-ghost" data-action="back-modes">换个模式</button>
         <button class="btn btn-primary" data-action="restart">再来一轮</button>
@@ -1717,6 +1828,7 @@ document.addEventListener('click', e => {
   if(act === 'back-modes'){ state.view='modes'; render(); return; }
   if(act === 'restart'){ startSession(state.mode); return; }
   if(act === 'submit-spell'){ submitSpell(); return; }
+  if(act === 'submit-sentence'){ submitSentence(); return; }
   if(act === 'pick-unit'){ state.unit = +el.dataset.unit; state.wrongMode = false; state.view='modes'; render(); return; }
   if(act === 'enter-wrongbook'){ state.wrongMode = true; state.unit = null; state.view='modes'; render(); return; }
   if(act === 'clear-wrongbook'){
@@ -1769,6 +1881,23 @@ function submitSpell(){
   render();
   if(isRight){ speak(w.en); vibrate(30); setTimeout(() => judge(5), 700); }
   else { vibrate([100,50,100]); setTimeout(() => { speak(w.en); judge(2); }, 900); }
+}
+function submitSentence(){
+  if(state.answered) return;
+  const inp = $('spellInput');
+  if(!inp) return;
+  const val = inp.value.trim();
+  const w = currentWord();
+  if(!val){ toast('请先输入英文句子'); return; }
+  // 归一化比较：忽略大小写、标点、多余空格
+  const norm = s => s.toLowerCase().replace(/[^a-z0-9\s]/g,' ').replace(/\s+/g,' ').trim();
+  const isRight = norm(val) === norm(w.en);
+  state.spellingValue = inp.value;
+  state.picked = isRight ? 'right' : 'wrong';
+  state.answered = true;
+  render();
+  if(isRight){ vibrate(30); setTimeout(() => judge(5), 800); }
+  else { vibrate([100,50,100]); setTimeout(() => { speak(w.en); judge(2); }, 1200); }
 }
 $('backBtn').addEventListener('click', () => {
   if(state.view === 'study' || state.view === 'result'){ state.view = 'modes'; }
