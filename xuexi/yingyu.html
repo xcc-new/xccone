@@ -1024,6 +1024,19 @@ function getWrongCount(){
     });
   return n;
 }
+function getWrongBreakdown(){
+  let wrong = 0, todo = 0;
+  for (const sem in WORD_DATA) for (const u in WORD_DATA[sem])
+    WORD_DATA[sem][u].forEach(a => {
+      const id = cardId(state.grade, state.sem, u, a[0]);
+      if (inWrongbook(id)) {
+        const card = STORE.cards[id];
+        if (card && card.lastType === 'todo') todo++;
+        else wrong++;
+      }
+    });
+  return {wrong, todo, total: wrong + todo};
+}
 function getWrongWords(){
   const list = [];
   for (const sem in WORD_DATA) for (const u in WORD_DATA[sem])
@@ -1245,7 +1258,7 @@ function nextCard(){
     cur._status = 'todo';
     state.stats.todo++;
     if(!state.wrongWords.find(x=>x.en===cur.en)) state.wrongWords.push(cur);
-    try{ updateCardSM2(cur.id, 1); }catch(e){}
+    try{ updateCardSM2(cur.id, 1, 'todo'); }catch(e){}
   }
   state.flipped = false; state.options = null; state.answered = false;
   state.picked = null; state.spellingValue = ''; state.idx++;
@@ -1318,10 +1331,12 @@ function renderUnits(){
       <p>6个单元 · 共 ${countWords(g)} 个单词</p>
     </div>
     ${(() => {
-      const wc = getWrongCount();
-      const sub = wc > 0 ? `${wc} 个错题待巩固，点击开始针对性练习` : '暂无错题，先去练习几道题吧';
+      const bd = getWrongBreakdown();
+      const sub = bd.total > 0
+        ? `答错 ${bd.wrong} · 未答 ${bd.todo}，点击针对性练习`
+        : '暂无错题，先去练习几道题吧';
       return `
-        <button class="wrongbook-card fade-in" data-action="enter-wrongbook" ${wc===0?'style="opacity:.6"':''}>
+        <button class="wrongbook-card fade-in" data-action="enter-wrongbook" ${bd.total===0?'style="opacity:.6"':''}>
           <div class="wb-emoji">📕</div>
           <div class="wb-info">
             <div class="t">错题本</div>
@@ -1367,8 +1382,9 @@ function renderUnits(){
 function renderModes(){
   let title, sub;
   if (state.wrongMode) {
+    const bd = getWrongBreakdown();
     title = '错题复习';
-    sub = `共 ${getWrongWords().length} 个错题 · 选择训练模式`;
+    sub = `答错 ${bd.wrong} · 未答 ${bd.todo} · 选择训练模式`;
   } else {
     const key = `${state.grade}${state.sem}`;
     title = (UNIT_TITLES[key] || [])[state.unit-1] || `Unit ${state.unit}`;
@@ -1406,7 +1422,7 @@ function renderModes(){
   main.innerHTML = `
     ${state.wrongMode ? `
       <div style="background:linear-gradient(135deg,#fff5f5,#ffe3e3);border-radius:16px;padding:16px;margin-bottom:12px;box-shadow:var(--shadow)">
-        <div style="font-size:15px;font-weight:800;color:#c0392b">📕 共 ${wrongTotal} 个待巩固</div>
+        <div style="font-size:15px;font-weight:800;color:#c0392b">📕 待巩固 ${wrongTotal} 个（答错 ${(() => {const b=getWrongBreakdown();return b.wrong})()} · 未答 ${(() => {const b=getWrongBreakdown();return b.todo})()}）</div>
         <div style="font-size:12px;color:#b06050;margin-top:6px;line-height:1.5">选择任意模式开始练习，连续答对 2 次后自动移出错题本</div>
         <button class="btn btn-ghost" data-action="clear-wrongbook" style="margin-top:10px;padding:7px 14px;font-size:12px;color:var(--muted)">🗑 清空错题本</button>
       </div>
