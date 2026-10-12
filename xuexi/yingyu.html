@@ -531,6 +531,28 @@ const WORD_DATA = {
     ["before","在……之前","/bɪˈfɔː(r)/"],
     ["go hiking","徒步旅行","/ˌɡəʊ ˈhaɪkɪŋ/"],
     ["bring","带……到某处；带来；取来","/brɪŋ/"]
+  ],
+  7: [
+    ["I'm = I am（我是）","口诀：I 和 am 是铁哥们，永远在一起。例：I'm Mike. I'm happy.",""],
+    ["can（能、会）","口诀：不管是谁，can 后面都跟动词原形（不加 s）。例：I can share. She can read. We can play.",""],
+    ["he / she（他/她）","口诀：男的用 he，女的用 she。例：He is my brother. She is my sister.",""],
+    ["this / that（这个/那个）","口诀：近的用 this，远的用 that。例：This is my book. That is your bag.",""],
+    ["be动词：am/is/are","口诀：I 用 am，you 用 are，is 连着 he/she/it；单数名词用 is，复数名词用 are。例：I am happy. She is tall. They are friends.",""],
+    ["have / has（有）","口诀：我、你、多个人用 have；他、她、它、单个用 has。例：I have a pen. She has long hair.",""],
+    ["一般疑问句（用“吗”问）","口诀：用 Do 问，用 do 答。例：Do you like apples? — Yes, I do.",""],
+    ["There is / There are（有）","口诀：一个或不可数用 There is，多个用 There are。例：There is a cat. There are three cats.",""],
+    ["现在进行时（正在做）","口诀：正在做 = be动词(am/is/are) + 动词ing。例：I am reading. She is singing.",""],
+    ["位置词：in/on/under/near","口诀：in 里面，on 上面，under 下面，near 旁边。例：The book is on the desk.",""],
+    ["祈使句（命令或请求）","口诀：直接说动词就是请你做，Don't + 动词就是请不要做。例：Sit down. Don't run.",""],
+    ["单数变复数（一个变多个）","口诀：大多数加 s；以 s/x/sh/ch 结尾加 es。例：cat→cats，box→boxes。",""],
+    ["第三人称单数动词变化（他/她/它做）","口诀：主语是 he/she/it 或单个人，动词加 s；以 o/s/x/sh/ch 结尾加 es；辅音+y 变 y 为 i 再加 es。例：He reads books. She goes to school. My father studies English.",""],
+    ["like + 动词ing（喜欢做某事）","口诀：喜欢做，like 后面跟 -ing；主语三单时 like 要加 s（likes）。例：I like swimming. She likes drawing.",""],
+    ["would like（想要）","口诀：想要 = would like，后接 to+动词原形或直接接名词；问句用 What would you like? 例：I would like some milk. She would like to play.",""],
+    ["一般将来时 be going to（打算做）","口诀：打算做 = be going to + 动词原形，表示将来的计划。例：I am going to visit my grandma. They are going to play football.",""],
+    ["现在进行时加深（动词ing变化规则）","口诀：一般直接加 ing；以不发音 e 结尾去 e 加 ing；重读闭音节双写末字母加 ing。例：make→making，run→running，swim→swimming。",""],
+    ["现在进行时 vs 一般现在时（对比）","口诀：now / listen / look 用进行时（正在做）；every day / always 用一般现在时（经常做）。例：I read books every day.（一般）I am reading now.（进行）",""],
+    ["特殊疑问词（问什么、哪儿、谁、怎么）","口诀：what 问事物，where 问地点，who 问人物，when 问时间，why 问原因，how 问方式。例：What is this? Where is my pen? Who is that boy?",""],
+    ["介词后动词加 ing","口诀：at 是介词，后面出现动词要加 ing。例：He is good at swimming.（他擅长游泳。）",""]
   ]
 }
 };
@@ -541,7 +563,8 @@ const UNIT_TITLES = {
    "Work and play",
    "Healthy habits",
    "Food we eat",
-   "Nature and us"
+   "Nature and us",
+   "语法口诀速记"
  ]
 };
 const LESSON_DATA = {
@@ -606,6 +629,28 @@ const LESSON_DATA = {
       ["Mike", "Is there any bad weather here in summer?", "这里夏天有恶劣天气吗？"],
       ["Mr Liu", "Yes. There is heavy rain. Sometimes there are floods.", "是的。有大雨。有时候会有洪水。"],
       ["Weather Reporter", "Good morning! This is the world weather report. In London, there will be heavy rain today. Tomorrow, it will be cloudy. You can go outside and enjoy the cool weather! ...", "早上好！这是世界天气预报。在伦敦，今天将有大雨。明天，天气多云。你可以出去享受凉爽的天气！..."]
+    ],
+    7: [
+      ["I'm = I am（我是）", "口诀：I 和 am 是铁哥们，永远在一起。", "例：I'm Mike. I'm happy."],
+      ["can（能、会）", "口诀：不管是谁，can 后面都跟动词原形（不加 s）。", "例：I can share. She can read. We can play."],
+      ["he / she（他/她）", "口诀：男的用 he，女的用 she。", "例：He is my brother. She is my sister."],
+      ["this / that（这个/那个）", "口诀：近的用 this，远的用 that。", "例：This is my book. That is your bag."],
+      ["be动词：am/is/are", "口诀：I 用 am，you 用 are，is 连着 he/she/it；单数名词用 is，复数名词用 are。", "例：I am happy. She is tall. They are friends."],
+      ["have / has（有）", "口诀：我、你、多个人用 have；他、她、它、单个用 has。", "例：I have a pen. She has long hair."],
+      ["一般疑问句（用“吗”问）", "口诀：用 Do 问，用 do 答。", "例：Do you like apples? — Yes, I do."],
+      ["There is / There are（有）", "口诀：一个或不可数用 There is，多个用 There are。", "例：There is a cat. There are three cats."],
+      ["现在进行时（正在做）", "口诀：正在做 = be动词(am/is/are) + 动词ing。", "例：I am reading. She is singing."],
+      ["位置词：in/on/under/near", "口诀：in 里面，on 上面，under 下面，near 旁边。", "例：The book is on the desk."],
+      ["祈使句（命令或请求）", "口诀：直接说动词就是请你做，Don't + 动词就是请不要做。", "例：Sit down. Don't run."],
+      ["单数变复数（一个变多个）", "口诀：大多数加 s；以 s/x/sh/ch 结尾加 es。", "例：cat→cats，box→boxes。"],
+      ["第三人称单数动词变化（他/她/它做）", "口诀：主语是 he/she/it 或单个人，动词加 s；o/s/x/sh/ch 结尾加 es；辅音+y 变 y 为 i 再加 es。", "例：He reads books. She goes to school. My father studies English."],
+      ["like + 动词ing（喜欢做某事）", "口诀：喜欢做，like 后面跟 -ing；主语三单时 like 要加 s。", "例：I like swimming. She likes drawing."],
+      ["would like（想要）", "口诀：想要 = would like，后接 to+动词原形或直接接名词；问句用 What would you like?", "例：I would like some milk. She would like to play."],
+      ["一般将来时 be going to（打算做）", "口诀：打算做 = be going to + 动词原形，表示将来的计划。", "例：I am going to visit my grandma. They are going to play football."],
+      ["现在进行时加深（动词ing变化规则）", "口诀：一般直接加 ing；以不发音 e 结尾去 e 加 ing；重读闭音节双写末字母加 ing。", "例：make→making，run→running，swim→swimming。"],
+      ["现在进行时 vs 一般现在时（对比）", "口诀：now / listen / look 用进行时；every day / always 用一般现在时。", "例：I read books every day.（一般）I am reading now.（进行）"],
+      ["特殊疑问词（问什么、哪儿、谁、怎么）", "口诀：what 问事物，where 问地点，who 问人物，when 问时间，why 问原因，how 问方式。", "例：What is this? Where is my pen? Who is that boy?"],
+      ["介词后动词加 ing", "口诀：at 是介词，后面出现动词要加 ing。", "例：He is good at swimming.（他擅长游泳。）"]
     ]
   }
 };
@@ -968,6 +1013,30 @@ const LESSON_BOOK = {
       ["Mr Liu", "Yes. There is heavy rain. Sometimes there are floods.", "有。有大雨，有时会有洪水。"],
     ],
   },
+  7: {
+    A_talk: [
+      ["I'm = I am（我是）", "口诀：I 和 am 是铁哥们，永远在一起。", "例：I'm Mike. I'm happy."],
+      ["can（能、会）", "口诀：不管是谁，can 后面都跟动词原形（不加 s）。", "例：I can share. She can read. We can play."],
+      ["he / she（他/她）", "口诀：男的用 he，女的用 she。", "例：He is my brother. She is my sister."],
+      ["this / that（这个/那个）", "口诀：近的用 this，远的用 that。", "例：This is my book. That is your bag."],
+      ["be动词：am/is/are", "口诀：I 用 am，you 用 are，is 连着 he/she/it；单数名词用 is，复数名词用 are。", "例：I am happy. She is tall. They are friends."],
+      ["have / has（有）", "口诀：我、你、多个人用 have；他、她、它、单个用 has。", "例：I have a pen. She has long hair."],
+      ["一般疑问句（用“吗”问）", "口诀：用 Do 问，用 do 答。", "例：Do you like apples? — Yes, I do."],
+      ["There is / There are（有）", "口诀：一个或不可数用 There is，多个用 There are。", "例：There is a cat. There are three cats."],
+      ["现在进行时（正在做）", "口诀：正在做 = be动词(am/is/are) + 动词ing。", "例：I am reading. She is singing."],
+      ["位置词：in/on/under/near", "口诀：in 里面，on 上面，under 下面，near 旁边。", "例：The book is on the desk."],
+      ["祈使句（命令或请求）", "口诀：直接说动词就是请你做，Don't + 动词就是请不要做。", "例：Sit down. Don't run."],
+      ["单数变复数（一个变多个）", "口诀：大多数加 s；以 s/x/sh/ch 结尾加 es。", "例：cat→cats，box→boxes。"],
+      ["第三人称单数动词变化（他/她/它做）", "口诀：主语是 he/she/it 或单个人，动词加 s；o/s/x/sh/ch 结尾加 es；辅音+y 变 y 为 i 再加 es。", "例：He reads books. She goes to school. My father studies English."],
+      ["like + 动词ing（喜欢做某事）", "口诀：喜欢做，like 后面跟 -ing；主语三单时 like 要加 s。", "例：I like swimming. She likes drawing."],
+      ["would like（想要）", "口诀：想要 = would like，后接 to+动词原形或直接接名词；问句用 What would you like?", "例：I would like some milk. She would like to play."],
+      ["一般将来时 be going to（打算做）", "口诀：打算做 = be going to + 动词原形，表示将来的计划。", "例：I am going to visit my grandma. They are going to play football."],
+      ["现在进行时加深（动词ing变化规则）", "口诀：一般直接加 ing；以不发音 e 结尾去 e 加 ing；重读闭音节双写末字母加 ing。", "例：make→making，run→running，swim→swimming。"],
+      ["现在进行时 vs 一般现在时（对比）", "口诀：now / listen / look 用进行时；every day / always 用一般现在时。", "例：I read books every day.（一般）I am reading now.（进行）"],
+      ["特殊疑问词（问什么、哪儿、谁、怎么）", "口诀：what 问事物，where 问地点，who 问人物，when 问时间，why 问原因，how 问方式。", "例：What is this? Where is my pen? Who is that boy?"],
+      ["介词后动词加 ing", "口诀：at 是介词，后面出现动词要加 ing。", "例：He is good at swimming.（他擅长游泳。）"]
+    ],
+  },
 };
 const LESSON_AUDIO_MAP = buildLessonAudioMap();
 /* =========================================================
@@ -1328,7 +1397,7 @@ function renderUnits(){
     <div class="hero fade-in">
       <div class="hero-emoji">📖</div>
       <h2>选择单元开始学习</h2>
-      <p>6个单元 · 共 ${countWords(g)} 个单词</p>
+      <p>7个单元 · 共 ${countWords(g)} 个单词</p>
     </div>
     ${(() => {
       const bd = getWrongBreakdown();
