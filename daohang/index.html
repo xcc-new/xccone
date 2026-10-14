@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Linmi Tools · 工具导航</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230E1116'/%3E%3Crect x='12' y='12' width='17' height='17' rx='4' fill='%235B8CFF'/%3E%3Crect x='35' y='12' width='17' height='17' rx='4' fill='%23F0874F'/%3E%3Crect x='12' y='35' width='17' height='17' rx='4' fill='%23D3B24A'/%3E%3Crect x='35' y='35' width='17' height='17' rx='4' fill='%2343C98B'/%3E%3C/svg%3E">
+<style>
+  :root{
+    --bg:#0E1116;
+    --surface:#171C24;
+    --surface-2:#1D2430;
+    --line:#232B38;
+    --text:#E8ECF1;
+    --text-dim:#9AA6B2;
+    --dev:#5B8CFF;
+    --food:#F0874F;
+    --watch:#D3B24A;
+    --english:#43C98B;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html{-webkit-text-size-adjust:100%;}
+  body{
+    font-family:"Segoe UI","PingFang SC","Microsoft YaHei",system-ui,sans-serif;
+    background:var(--bg);
+    color:var(--text);
+    min-height:100vh;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    padding:56px 24px 40px;
+  }
+  a{text-decoration:none;color:inherit;}
+  :focus-visible{outline:2px solid #7AA2FF;outline-offset:3px;border-radius:4px;}
+
+  /* ===== Hero ===== */
+  .hero{text-align:center;margin-bottom:44px;}
+  .hero h1{
+    font-size:clamp(40px,7vw,64px);
+    font-weight:800;
+    letter-spacing:-0.02em;
+    line-height:1.1;
+  }
+  .hero h1 .dot{color:var(--dev);}
+  .hero p{
+    margin-top:12px;
+    font-size:clamp(15px,2.4vw,18px);
+    color:var(--text-dim);
+  }
+  .hero .count{
+    margin-top:18px;
+    display:inline-block;
+    font-size:13px;
+    color:var(--text-dim);
+    border:1px solid var(--line);
+    border-radius:999px;
+    padding:6px 16px;
+  }
+  .hero .count b{color:var(--text);font-weight:600;}
+
+  /* ===== Grid ===== */
+  .grid{
+    width:100%;
+    max-width:1080px;
+    display:grid;
+    grid-template-columns:repeat(2,1fr);
+    gap:22px;
+  }
+  .card{
+    position:relative;
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:18px;
+    padding:30px 28px 26px;
+    display:flex;
+    flex-direction:column;
+    transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease;
+    overflow:hidden;
+  }
+  .card::before{
+    content:"";
+    position:absolute;
+    inset:0 auto 0 0;
+    width:4px;
+    background:var(--accent);
+    opacity:.85;
+  }
+  .card:hover{
+    transform:translateY(-4px);
+    border-color:var(--accent);
+    box-shadow:0 14px 34px -14px rgba(0,0,0,.55);
+  }
+  .card:active{transform:translateY(0);}
+
+  .card-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:20px;}
+  .icon{
+    width:56px;height:56px;
+    border-radius:14px;
+    background:color-mix(in srgb,var(--accent) 16%,var(--surface-2));
+    color:var(--accent);
+    display:flex;align-items:center;justify-content:center;
+    flex-shrink:0;
+  }
+  .icon svg{width:30px;height:30px;}
+  .arrow{
+    color:var(--text-dim);
+    opacity:0;
+    transform:translateX(-6px);
+    transition:opacity .18s ease,transform .18s ease;
+    margin-top:6px;
+  }
+  .card:hover .arrow{opacity:1;transform:translateX(0);}
+
+  .card h2{font-size:23px;font-weight:700;letter-spacing:-0.01em;margin-bottom:8px;}
+  .card .desc{font-size:14.5px;line-height:1.7;color:var(--text-dim);margin-bottom:20px;}
+  .tags{
+    display:flex;flex-wrap:wrap;gap:8px;
+    margin-bottom:24px;
+  }
+  .tags span{
+    font-size:12px;
+    padding:4px 11px;
+    border-radius:999px;
+    border:1px solid var(--line);
+    color:var(--text-dim);
+    background:var(--surface-2);
+  }
+  .open{
+    margin-top:auto;
+    align-self:flex-start;
+    font-size:14px;
+    font-weight:600;
+    color:#0E1116;
+    background:var(--accent);
+    padding:9px 20px;
+    border-radius:10px;
+    transition:filter .15s ease;
+  }
+  .card:hover .open{filter:brightness(1.12);}
+
+  /* ===== Footer ===== */
+  footer{
+    margin-top:48px;
+    font-size:13px;
+    color:var(--text-dim);
+    opacity:.7;
+  }
+
+  /* ===== Responsive ===== */
+  @media (max-width:760px){
+    body{padding:40px 16px 32px;}
+    .grid{grid-template-columns:1fr;}
+  }
+  @media (prefers-reduced-motion:reduce){
+    .card{transition:none;}
+    .card:hover{transform:none;}
+    .arrow{opacity:1;transform:none;}
+  }
+</style>
+</head>
+<body>
+
+  <header class="hero">
+    <h1>Linmi Tools<span class="dot">.</span></h1>
+    <p>四个自用工具站，想用哪个，点哪个。</p>
+    <div class="count"><b>4</b> 个工具 · 全部在线</div>
+  </header>
+
+  <main class="grid">
+
+    <a class="card" style="--accent:var(--dev)" href="https://linmi-tool.top/index.html" target="_blank" rel="noopener">
+      <div class="card-top">
+        <span class="icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+        </span>
+        <svg class="arrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+      </div>
+      <h2>DevBox 开发工具箱</h2>
+      <p class="desc">日常开发常用小工具合集：JSON 格式化校验、时间戳与北京时间互转、Base64 加解密、URL 编解码等一页搞定。</p>
+      <div class="tags">
+        <span>JSON 格式化</span><span>时间戳互转</span><span>Base64</span><span>URL 编解码</span><span>进制转换</span><span>身份证校验</span>
+      </div>
+      <span class="open">打开工具</span>
+    </a>
+
+    <a class="card" style="--accent:var(--food)" href="https://linmi-tool.top/diancai/index.html" target="_blank" rel="noopener">
+      <div class="card-top">
+        <span class="icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"/></svg>
+        </span>
+        <svg class="arrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+      </div>
+      <h2>在家吃什么</h2>
+      <p class="desc">221 道家常菜任你选：按人数定餐、转盘抽菜、全家投票，做饭不再纠结今天吃什么。</p>
+      <div class="tags">
+        <span>221 道菜</span><span>按人数点单</span><span>转盘抽菜</span><span>家庭投票</span>
+      </div>
+      <span class="open">打开工具</span>
+    </a>
+
+    <a class="card" style="--accent:var(--watch)" href="https://linmi-tool.top/sb/mbcx.html" target="_blank" rel="noopener">
+      <div class="card-top">
+        <span class="icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="7"/><polyline points="12 9 12 12 13.5 13.5"/><path d="M16.51 17.35 18 22l-6-3-6 3 1.49-4.65"/></svg>
+        </span>
+        <svg class="arrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+      </div>
+      <h2>名表验真</h2>
+      <p class="desc">选品牌、跳官方、输序列号核验真伪：卡地亚、万国、积家、江诗丹顿、沛纳海查询入口一站直达。</p>
+      <div class="tags">
+        <span>卡地亚</span><span>万国 IWC</span><span>积家</span><span>江诗丹顿</span><span>沛纳海</span>
+      </div>
+      <span class="open">打开工具</span>
+    </a>
+
+    <a class="card" style="--accent:var(--english)" href="https://linmi-tool.top/xuexi/yingyu.html" target="_blank" rel="noopener">
+      <div class="card-top">
+        <span class="icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+        </span>
+        <svg class="arrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+      </div>
+      <h2>五年级英语</h2>
+      <p class="desc">人教 PEP 版五年级上册单词学习：7 个单元 139 词，按单元闯关、错题本自动收录、历次成绩可查。</p>
+      <div class="tags">
+        <span>7 个单元</span><span>139 个单词</span><span>错题本</span><span>练习记录</span>
+      </div>
+      <span class="open">打开工具</span>
+    </a>
+
+  </main>
+
+  <footer>Linmi Tools · 导航页</footer>
+</body>
+</html>
